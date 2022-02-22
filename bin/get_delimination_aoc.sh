@@ -27,3 +27,4 @@ rgrep -l '"id_app":'$INAO_ID_APP',' geo/features/ | while read json ; do
     cat $json >> "communes/delimitation-"$insee".json"
     echo ']}' >> "communes/delimitation-"$insee".json"
 done
+ls communes | grep json > communes/communes.list
