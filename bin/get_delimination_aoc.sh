@@ -21,7 +21,7 @@ cat output.geojson | jq --compact-output ".features[]" | split -l 1 --additional
 cd ..
 rm -rf communes
 mkdir -p communes
-rgrep -l '"id_app":'$INAO_ID_APP',' geo/features/ | while read json ; do
+rgrep -l '"id_denom":'$INAO_ID_DENOM',' geo/features/ | while read json ; do
     insee=$(jq .properties.insee $json | sed 's/"//g')
     echo '{"type": "FeatureCollection","name": "aoc_geojson","crs": {"type": "name","properties": {"name": "urn:ogc:def:crs:EPSG::2154"}},"features": [' > "communes/delimitation-"$insee".json"
     cat $json >> "communes/delimitation-"$insee".json"
