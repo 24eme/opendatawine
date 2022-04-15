@@ -15,12 +15,20 @@ unzip -q e79a7c68-2fe4-4225-a802-8379a8d6426c.zip
 ogr2ogr -f GeoJSON -t_srs crs:84 output.geojson *delim_parcellaire_aoc_shp.shp
 cat output.geojson | jq --compact-output ".features[]" | split -l 1 --additional-suffix=".geojson" /dev/stdin "features/"$i
 cd ..
-rm -rf communes
-mkdir -p communes
-rgrep -l '"id_denom":'$INAO_ID_DENOM',' geo/features/ | while read json ; do
-    insee=$(jq .properties.insee $json | sed 's/"//g')
-    echo '{"type": "FeatureCollection","name": "aoc_geojson","crs": {"type": "name","properties": {"name": "urn:ogc:def:crs:EPSG::2154"}},"features": [' > "communes/delimitation-"$insee".json"
-    cat $json >> "communes/delimitation-"$insee".json"
-    echo ']}' >> "communes/delimitation-"$insee".json"
+
+ls geo/features/* | while read feature ; do
+    sed 's/.*id_denom"://' $feature  | sed 's/,.*//'
+done  | sed 's/,.*//' | sort -u | while read iddenom; do
+    iddenum_print=$( printf '%05d' $iddenom )
+    rgrep -l '"id_denom":'$iddenom',' geo/features/ | while read json ; do
+        insee=$(jq .properties.insee $json | sed 's/"//g')
+        dep=$(echo $insee | sed 's/...$//')
+        mkdir -p "delimitation_aoc/"$dep"/"$insee
+        file="delimitation_aoc/"$dep"/"$insee"/"$iddenum_print".geojson"
+        echo '{"type": "FeatureCollection","name": "aoc_geojson","crs": {"type": "name","properties": {"name": "urn:ogc:def:crs:EPSG::2154"}},"features": [' > $file
+        cat $json >> $file
+        echo ']}' >> $file
+        cat $file | tr -d '\n' > $file".tmp"
+        mv $file".tmp" $file
+    done
 done
-ls communes | grep json > communes/communes.list
