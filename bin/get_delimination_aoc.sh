@@ -2,14 +2,10 @@
 
 cd $(dirname $0)/../
 
-PRODOUANE_NO_WWWDATA=true
-
 if ! which ogr2ogr > /dev/null; then
     echo "ogr2ogr missing (sudo apt install gdal-bin)"
     exit 3
 fi
-
-. bin/common.inc
 
 rm -rf geo/*
 mkdir -p geo/features
