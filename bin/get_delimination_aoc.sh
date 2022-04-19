@@ -13,7 +13,9 @@ cd geo
 curl -s -L https://www.data.gouv.fr/fr/datasets/r/e79a7c68-2fe4-4225-a802-8379a8d6426c > e79a7c68-2fe4-4225-a802-8379a8d6426c.zip
 unzip -q e79a7c68-2fe4-4225-a802-8379a8d6426c.zip 
 ogr2ogr -f GeoJSON -t_srs crs:84 output.geojson *delim_parcellaire_aoc_shp.shp
+rm *delim_parcellaire_aoc_shp.shp
 cat output.geojson | jq --compact-output ".features[]" | split -l 1 --additional-suffix=".geojson" /dev/stdin "features/"$i
+rm output.geojson
 cd ..
 
 ls geo/features/* | while read feature ; do
