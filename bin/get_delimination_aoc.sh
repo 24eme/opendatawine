@@ -27,10 +27,11 @@ done  | sed 's/,.*//' | sort -u | while read iddenom; do
         dep=$(echo $insee | sed 's/...$//')
         mkdir -p "delimitation_aoc/"$dep"/"$insee
         file="delimitation_aoc/"$dep"/"$insee"/"$iddenum_print".geojson"
-        echo '{"type": "FeatureCollection","name": "aoc_geojson","crs": {"type": "name","properties": {"name": "urn:ogc:def:crs:EPSG::2154"}},"features": [' > $file
+        echo '{"type": "FeatureCollection","name": "aoc_geojson","features": [' > $file
         cat $json >> $file
         echo ']}' >> $file
         cat $file | tr -d '\n' > $file".tmp"
         mv $file".tmp" $file
+        echo >> $file
     done
 done
