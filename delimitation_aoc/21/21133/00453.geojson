@@ -1,3 +1,4 @@
-{"type": "FeatureCollection","name": "aoc_geojson","crs": {"type": "name","properties": {"name": "urn:ogc:def:crs:EPSG::2154"}},"features": [
+{"type": "FeatureCollection","name": "aoc_geojson","features": [
 {"type":"Feature","properties":{"dt":"Dijon","type_prod":"Vins","categorie":"Vin tranquille","type_denom":"dénomination géographique complémentaire","type_ig":"AOC","id_app":150,"app":"Chambolle-Musigny","id_denom":453,"denom":"Chambolle-Musigny premier cru Derrière la Grange","insee":"21133","nomcom":"CHAMBOLLE-MUSIGNY","insee2011":"21133","nomcom2011":"CHAMBOLLE-MUSIGNY","id_aire":348,"crinao":"Bourgogne, Beaujolais, Savoie, Jura","grp_name1":"Bourgogne et Beaujolais","grp_name2":"Bourgogne"},"geometry":{"type":"Polygon","coordinates":[[[4.957271301338093,47.18798868829342],[4.956704169280107,47.18756095296927],[4.956630536176264,47.18759693154918],[4.956483739857851,47.18747578332284],[4.956067597902291,47.187201821545095],[4.955996813533845,47.1872336720895],[4.955775580251461,47.18733242631184],[4.956136984587892,47.1876676059775],[4.956702186321864,47.18816588116915],[4.956830243820456,47.18822501826687],[4.957271301338093,47.18798868829342]]]}}
 ]}
+
