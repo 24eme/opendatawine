@@ -1,0 +1,97 @@
+<!doctype html>
+<!-- ####### PLEASE KEEP ####### -->
+<!--[if lte IE 6 ]><html class="no-js ie6 ielt7 ielt8 ielt9" lang="fr"><![endif]-->
+<!--[if IE 7 ]><html class="no-js ie7 ielt8 ielt9" lang="fr"><![endif]-->
+<!--[if IE 8 ]><html class="no-js ie8 ielt9" lang="fr"><![endif]-->
+<!--[if IE 9 ]><html class="no-js ie9" lang="fr"><![endif]-->
+<!--[if gt IE 9]><!--><html class="no-js" lang="fr"><!--<![endif]-->
+<!-- ####### PLEASE KEEP ####### -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-Ua-Compatible" content="IE=edge" />
+<meta name="charset" content="utf-8" />
+<meta name="content-language" content="fr-FR" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Carte</title>
+<script type="text/javascript" src="web/js/lib/leaflet/leaflet.js"></script>
+<script type="text/javascript" src="web/js/lib/jquery/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="web/js/colors.js"></script>
+
+<link rel="stylesheet" type="text/css" media="screen" href="web/js/lib/leaflet/leaflet.css"/>
+<link rel="stylesheet" type="text/css" media="screen" href="web/js/lib/leaflet/marker.css"/>
+</head>
+<body role="document">
+<div id="map" class="col-12" style="height:800px; width:1200px; margin-bottom: 20px;">
+</div>
+<style>
+.sectionlabel, .parcellelabel {
+	text-shadow: 1px 1px #fff,-1px 1px #fff,1px -1px #fff,-1px -1px #fff,1px 1px 5px #555;
+}
+</style>
+<script type="text/javascript">
+let searchParams = new URLSearchParams(window.location.search)
+var commune = searchParams.get('insee');
+var dep = commune.substring(0, 2);
+var denomid = searchParams.get('denomid');
+(function() {
+	var map = L.map('map', {center:[47.1113,2.6038],zoom:7});
+	L.tileLayer('https://wxs.ign.fr/{ignApiKey}/geoportail/wmts?'+
+		        '&REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&TILEMATRIXSET=PM'+
+		        '&LAYER={ignLayer}&STYLE={style}&FORMAT={format}'+
+		        '&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}',
+		        {
+		          ignApiKey: 'pratique',
+		          ignLayer: 'ORTHOIMAGERY.ORTHOPHOTOS',
+		          style: 'normal',
+		          format: 'image/jpeg',
+		          service: 'WMTS',
+		    maxZoom: 19,
+		    attribution: 'Map data &copy;' +
+		        '<a href="https://www.24eme.fr/">24eme Société coopérative</a>, ' +
+		        '<a href="https://cadastre.data.gouv.fr/">Cadastre</a>, ' +
+		        'Imagery © <a href="https://www.ign.fr/">IGN</a>',
+		    id: 'mapbox.light'
+	}).addTo(map);
+	
+	var layers = {};
+	async function loadFeatures() {
+		let url = 'delimitation_aoc/'+dep+'/'+commune+'/denominations.json';
+		console.log(url);
+		let denoms = await fetch(url);
+		let json = await denoms.json();
+		let base = denoms.url.replace(/[^\/]+$/, '')
+
+		let i = 0;
+		let bounds = null;
+		for(nom in json) {
+			let geojson_content = await fetch(base+json[nom]);
+			let current_denomid = json[nom].replace(".geojson","");
+			htmlname = '<span style="display:inline-block;width:25px;opacity:0.75;background-color:'+colors[i]+'"> &nbsp; </span> '+nom;
+			let geojson = await geojson_content.json();
+			layers[htmlname] = L.geoJSON(geojson,{style:{fillColor:colors[i],weight:0,opacity:0.75,dashArray:'5',color:'black',fillOpacity:0.4}});
+			if (!bounds) {
+				bounds = layers[htmlname].getBounds();
+			}else{
+				bounds = bounds.extend(layers[htmlname].getBounds());
+			}
+			if (!denomid || denomid == current_denomid) {
+				layers[htmlname].addTo(map);
+			}
+			i++;
+		}
+
+		map.fitBounds(bounds);
+		
+		url = base+'/cadastre-parcelles.json';
+		let cadastreaccess = await fetch(url);
+		parcelle_nom = '<span style="display:inline-block;width:23px;border:1px solid black;opacity:0.75;"> &nbsp; </span> Parcelles cadastrales'
+		layers[parcelle_nom] = L.geoJSON(await cadastreaccess.json(),{style:{weight:1,opacity:0.75,color:'black'}});
+		layers[parcelle_nom].addTo(map);
+
+		L.control.layers({},layers,{position:'bottomleft',collapsed:false}).addTo(map);
+	}
+	loadFeatures();
+})();
+</script>
+</body>
+</html>
