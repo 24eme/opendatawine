@@ -21,7 +21,13 @@
 <link rel="stylesheet" type="text/css" media="screen" href="web/js/lib/leaflet/marker.css"/>
 </head>
 <body role="document">
+<h1>Dénomination AOC sur la commune <span id="commune_nom"></span></h1>
 <div id="map" class="col-12" style="height:800px; width:1200px; margin-bottom: 20px;">
+</div>
+<div>
+	<h2>Téléchargement</h2>
+	<div id="download_list">
+	</div>
 </div>
 <style>
 .sectionlabel, .parcellelabel {
@@ -54,9 +60,9 @@ var denomid = searchParams.get('denomid');
 	}).addTo(map);
 	
 	var layers = {};
+	var downloads = {};
 	async function loadFeatures() {
 		let url = 'delimitation_aoc/'+dep+'/'+commune+'/denominations.json';
-		console.log(url);
 		let denoms = await fetch(url);
 		let json = await denoms.json();
 		let base = denoms.url.replace(/[^\/]+$/, '')
@@ -65,17 +71,19 @@ var denomid = searchParams.get('denomid');
 		let bounds = null;
 		for(nom in json) {
 			let geojson_content = await fetch(base+json[nom]);
+			downloads["Délimination de "+nom] = geojson_content.url;
 			let current_denomid = json[nom].replace(".geojson","");
 			htmlname = '<span style="display:inline-block;width:25px;opacity:0.75;background-color:'+colors[i]+'"> &nbsp; </span> '+nom;
 			let geojson = await geojson_content.json();
+			$('#commune_nom').html(geojson.features[0].properties.nomcom);
 			layers[htmlname] = L.geoJSON(geojson,{style:{fillColor:colors[i],weight:0,opacity:0.75,dashArray:'5',color:'black',fillOpacity:0.4}});
-			if (!bounds) {
-				bounds = layers[htmlname].getBounds();
-			}else{
-				bounds = bounds.extend(layers[htmlname].getBounds());
-			}
 			if (!denomid || denomid == current_denomid) {
 				layers[htmlname].addTo(map);
+				if (!bounds) {
+					bounds = layers[htmlname].getBounds();
+				}else{
+					bounds = bounds.extend(layers[htmlname].getBounds());
+				}
 			}
 			i++;
 		}
@@ -84,11 +92,18 @@ var denomid = searchParams.get('denomid');
 		
 		url = base+'/cadastre-parcelles.json';
 		let cadastreaccess = await fetch(url);
+		downloads["Parcelles cadastrales"] = cadastreaccess.url;
 		parcelle_nom = '<span style="display:inline-block;width:23px;border:1px solid black;opacity:0.75;"> &nbsp; </span> Parcelles cadastrales'
 		layers[parcelle_nom] = L.geoJSON(await cadastreaccess.json(),{style:{weight:1,opacity:0.75,color:'black'}});
 		layers[parcelle_nom].addTo(map);
 
 		L.control.layers({},layers,{position:'bottomleft',collapsed:false}).addTo(map);
+		let html_download = '<ul>';
+		for(id in downloads){
+			html_download += '<li><a href="'+downloads[id]+'">'+id+'</a></li>';
+		}
+		html_download += "</ul>";
+		$('#download_list').html(html_download);
 	}
 	loadFeatures();
 })();
