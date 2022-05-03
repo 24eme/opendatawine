@@ -22,12 +22,17 @@
 </head>
 <body role="document">
 <h1>Dénomination AOC sur la commune <span id="commune_nom"></span></h1>
+<div id="loader">
+	<pre id="loadermessage"></pre>
+</div>
+<div id="pagecontainer">
 <div id="map" class="col-12" style="height:800px; width:1200px; margin-bottom: 20px;">
 </div>
 <div>
 	<h2>Téléchargement</h2>
 	<div id="download_list">
 	</div>
+</div>
 </div>
 <style>
 .sectionlabel, .parcellelabel {
@@ -41,6 +46,7 @@ var dep = communes[0].substring(0, 2);
 var denomid = searchParams.get('denomid');
 var base_opendata = 'https://raw.githubusercontent.com/24eme/opendatawine/master';
 (function() {
+	$('#loadermessage').html("Prépartion de la carte");
 	var map = L.map('map', {center:[47.1113,2.6038],zoom:7});
 	L.tileLayer('https://wxs.ign.fr/{ignApiKey}/geoportail/wmts?'+
 		        '&REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&TILEMATRIXSET=PM'+
@@ -67,6 +73,7 @@ var base_opendata = 'https://raw.githubusercontent.com/24eme/opendatawine/master
 	  let noms_communes = [];
 	  for(c in communes) {
 		let commune = communes[c];
+		$('#loadermessage').html("Récupération des dénominations de "+commune);
 		let url = base_opendata +'/delimitation_aoc/'+dep+'/'+commune+'/denominations.json';
 		let denoms = await fetch(url);
 		let json = await denoms.json();
@@ -75,6 +82,7 @@ var base_opendata = 'https://raw.githubusercontent.com/24eme/opendatawine/master
 		let geojson;
 		let mycommune;
 		for(nom in json) {
+			$('#loadermessage').html("Récupération des délimitations "+nom+" dans "+commune);
 			let geojson_content = await fetch(base+json[nom]);
 			let current_denomid = json[nom].replace(".geojson","");
 			htmlname = '<span style="display:inline-block;width:25px;opacity:0.75;background-color:'+colors[i]+'"> &nbsp; </span> '+nom;
@@ -90,16 +98,20 @@ var base_opendata = 'https://raw.githubusercontent.com/24eme/opendatawine/master
 					bounds = bounds.extend(layers[htmlname].getBounds());
 				}
 			}
+			$('#loadermessage').html("Récupération des délimitations "+nom+" dans "+commune+" terminée");
 			i++;
 		}
 		noms_communes.push(mycommune);
 		url = base+'/cadastre-parcelles.json';
+		$('#loadermessage').html("Récupération du cadastre de "+commune);
 		let cadastreaccess = await fetch(url);
 		downloads["Parcelles cadastrales - "+mycommune] = cadastreaccess.url;
 		parcelle_nom = '<span style="display:inline-block;width:23px;border:1px solid black;opacity:0.75;"> &nbsp; </span> Parcelles cadastrales - '+mycommune;
 		layers[parcelle_nom] = L.geoJSON(await cadastreaccess.json(),{style:{weight:1,opacity:0.75,color:'black'}});
 		layers[parcelle_nom].addTo(map);
+		$('#loadermessage').html("Récupération du cadastre de "+commune+" terminée");
 	  }
+	  $('#loadermessage').html("");
 	  $('#commune_nom').html(noms_communes.join(', '));
 
 	  map.fitBounds(bounds);
