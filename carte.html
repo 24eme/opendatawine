@@ -36,9 +36,10 @@
 </style>
 <script type="text/javascript">
 let searchParams = new URLSearchParams(window.location.search)
-var commune = searchParams.get('insee');
-var dep = commune.substring(0, 2);
+var communes = searchParams.get('insee').split(',');
+var dep = communes[0].substring(0, 2);
 var denomid = searchParams.get('denomid');
+var base_opendata = 'https://raw.githubusercontent.com/24eme/opendatawine/master';
 (function() {
 	var map = L.map('map', {center:[47.1113,2.6038],zoom:7});
 	L.tileLayer('https://wxs.ign.fr/{ignApiKey}/geoportail/wmts?'+
@@ -62,20 +63,24 @@ var denomid = searchParams.get('denomid');
 	var layers = {};
 	var downloads = {};
 	async function loadFeatures() {
-		let url = 'delimitation_aoc/'+dep+'/'+commune+'/denominations.json';
+	  let bounds = null;
+	  let noms_communes = [];
+	  for(c in communes) {
+		let commune = communes[c];
+		let url = base_opendata +'/delimitation_aoc/'+dep+'/'+commune+'/denominations.json';
 		let denoms = await fetch(url);
 		let json = await denoms.json();
 		let base = denoms.url.replace(/[^\/]+$/, '')
-
 		let i = 0;
-		let bounds = null;
+		let geojson;
+		let mycommune;
 		for(nom in json) {
 			let geojson_content = await fetch(base+json[nom]);
-			downloads["Délimination de "+nom] = geojson_content.url;
 			let current_denomid = json[nom].replace(".geojson","");
 			htmlname = '<span style="display:inline-block;width:25px;opacity:0.75;background-color:'+colors[i]+'"> &nbsp; </span> '+nom;
-			let geojson = await geojson_content.json();
-			$('#commune_nom').html(geojson.features[0].properties.nomcom);
+			geojson = await geojson_content.json();
+			mycommune = geojson.features[0].properties.nomcom;
+			downloads["Délimination de "+nom+" - "+mycommune] = geojson_content.url;
 			layers[htmlname] = L.geoJSON(geojson,{style:{fillColor:colors[i],weight:0,opacity:0.75,dashArray:'5',color:'black',fillOpacity:0.4}});
 			if (!denomid || denomid == current_denomid) {
 				layers[htmlname].addTo(map);
@@ -87,23 +92,25 @@ var denomid = searchParams.get('denomid');
 			}
 			i++;
 		}
-
-		map.fitBounds(bounds);
-		
+		noms_communes.push(mycommune);
 		url = base+'/cadastre-parcelles.json';
 		let cadastreaccess = await fetch(url);
-		downloads["Parcelles cadastrales"] = cadastreaccess.url;
-		parcelle_nom = '<span style="display:inline-block;width:23px;border:1px solid black;opacity:0.75;"> &nbsp; </span> Parcelles cadastrales'
+		downloads["Parcelles cadastrales - "+mycommune] = cadastreaccess.url;
+		parcelle_nom = '<span style="display:inline-block;width:23px;border:1px solid black;opacity:0.75;"> &nbsp; </span> Parcelles cadastrales - '+mycommune;
 		layers[parcelle_nom] = L.geoJSON(await cadastreaccess.json(),{style:{weight:1,opacity:0.75,color:'black'}});
 		layers[parcelle_nom].addTo(map);
+	  }
+	  $('#commune_nom').html(noms_communes.join(', '));
 
-		L.control.layers({},layers,{position:'bottomleft',collapsed:false}).addTo(map);
-		let html_download = '<ul>';
-		for(id in downloads){
-			html_download += '<li><a href="'+downloads[id]+'">'+id+'</a></li>';
-		}
-		html_download += "</ul>";
-		$('#download_list').html(html_download);
+	  map.fitBounds(bounds);
+	  
+	  L.control.layers({},layers,{position:'bottomleft',collapsed:false}).addTo(map);
+	  let html_download = '<ul>';
+	  for(id in downloads){
+	  	html_download += '<li><a href="'+downloads[id]+'">'+id+'</a></li>';
+	  }
+	  html_download += "</ul>";
+	  $('#download_list').html(html_download);
 	}
 	loadFeatures();
 })();
