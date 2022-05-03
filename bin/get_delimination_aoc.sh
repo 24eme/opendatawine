@@ -14,45 +14,31 @@ if ! test -f e79a7c68-2fe4-4225-a802-8379a8d6426c.zip ; then
 fi
 md5sum=$(md5sum e79a7c68-2fe4-4225-a802-8379a8d6426c.zip)
 curl -s -L https://www.data.gouv.fr/fr/datasets/r/e79a7c68-2fe4-4225-a802-8379a8d6426c -o e79a7c68-2fe4-4225-a802-8379a8d6426c.zip -z e79a7c68-2fe4-4225-a802-8379a8d6426c.zip
-if ! test "$md5sum" = "$(md5sum e79a7c68-2fe4-4225-a802-8379a8d6426c.zip)" || ! test -d "features" ; then
-    rm -rf features
-    rm -f *delim* output.geojson
+if ! test "$md5sum" = "$(md5sum e79a7c68-2fe4-4225-a802-8379a8d6426c.zip)" || ! test -d "geo/features" ; then
+    rm -rf geo/features
+    rm -f *delim_parcellaire_aoc_shp.shp
     unzip -q e79a7c68-2fe4-4225-a802-8379a8d6426c.zip || rm e79a7c68-2fe4-4225-a802-8379a8d6426c.zip
-    ogr2ogr -f GeoJSON -t_srs crs:84 output.geojson *.shp
-    rm *.shp *.cpg *.prj *.shx *.dbf
-    cat output.geojson | sed 's/{"type": "Feature"/\n{"type": "Feature"/g' | grep '"type": "Feature"' | sed 's/,$//' | split -l 1 --additional-suffix=".geojson" /dev/stdin "features/"
+    ogr2ogr -f GeoJSON -t_srs crs:84 output.geojson *delim_parcellaire_aoc_shp.shp
+    rm *delim_parcellaire_aoc_shp.shp
+    cat output.geojson | jq --compact-output ".features[]" | split -l 1 --additional-suffix=".geojson" /dev/stdin "features/"$i
     rm output.geojson
 fi
 cd ..
 
-sed -i 's/"insee": "ok"/"insee": "34162"/' geo/features/znuy.geojson
-
-rgrep id_denom geo/features/ | sed 's/.*id_denom"://' | sed 's/,.*//' | sort -u | while read iddenom; do
+ls geo/features/* | while read feature ; do
+    sed 's/.*id_denom"://' $feature  | sed 's/,.*//'
+done  | sed 's/,.*//' | sort -u | while read iddenom; do
     iddenum_print=$( printf '%05d' $iddenom )
-    rgrep -l '"id_denom": *'$iddenom',' geo/features/ | while read json ; do
-        insee=$(cat $json  | sed 's/.*"insee": *"//' | sed 's/".*//' )
-        if test "$insee" = '{ '; then
-            insee=$(cat $json  | sed 's/.*"insee2011": *"//' | sed 's/".*//' )
-            sed -i 's/"insee": null/"insee": "'$insee'"/' $json
-        fi
+    rgrep -l '"id_denom":'$iddenom',' geo/features/ | while read json ; do
+        insee=$(cat $json  | sed 's/.*"insee":"//' | sed 's/".*//' )
         dep=$(echo $insee | sed 's/...$//')
         mkdir -p "delimitation_aoc/"$dep"/"$insee
         file="delimitation_aoc/"$dep"/"$insee"/"$iddenum_print".geojson"
-        if ! test -f $file ; then
-            echo '{"type": "FeatureCollection","name": "aoc_geojson","features": [' > $file
-            cat $json | jq --compact-output . >> $file
-            echo ']}' >> $file
-            cat $file | tr -d '\n' > $file".tmp"
-            mv -f $file".tmp" $file
-        else
-            echo '{"type": "FeatureCollection","name": "aoc_geojson","features": [' > $file."tmp"
-            cat $file | jq --compact-output .features[0] >> $file".tmp"
-            echo "," >> $file".tmp"
-            cat $json | jq --compact-output . >> $file".tmp"
-            echo ']}' >> $file".tmp"
-            cat $file".tmp"  | tr -d '\n' > $file
-            rm -f $file".tmp"
-        fi
+        echo '{"type": "FeatureCollection","name": "aoc_geojson","features": [' > $file
+        cat $json >> $file
+        echo ']}' >> $file
+        cat $file | tr -d '\n' > $file".tmp"
+        mv $file".tmp" $file
         echo >> $file
     done
 done
@@ -79,31 +65,21 @@ echo "dt;type_prod;categorie;type_denom;type_ig;id_app;app;id_denom;denom;insee;
 cat $(find delimitation_aoc/ -name denominations.json) | grep '^"' | sort -u | sed 's/.geojson//' | awk -F '"' '{print $4";"$2}' | while read line; do
     denomid=$(echo $line| sed 's/;.*//')
     denomination=$(echo $line| sed 's/.*;//')
-    find delimitation_aoc -name $denomid".geojson"  | while read file ; do
-         cat $file | jq -c .features[0].properties | sed 's/\\"//g' | sed 's/;/ /g' | jq  -c '[.dt,.type_prod,.categorie,.type_denom,.type_ig,.id_app,.app,.id_denom,.denom,.insee,.nomcom,.insee2011,.nomcom2011,.id_aire,.crinao,.grp_name1,.grp_name2]' | awk -F '"' 'BEGIN{OFS = "\"" ;} {gsub(",", " -", $6); gsub(",", " -", $22); gsub(",", " -", $24); gsub(",", " -", $26); gsub(",", "|", $14); gsub(",", "|", $16); gsub(",", "|", $18); gsub(",", "|", $20); print $0}' | sed 's/,null,/,,/g' | sed 's/^\[//' | sed 's/\]$//' | sed 's/,/;/g' >> denominations.csv
-    done
+    file=$(find delimitation_aoc -name $denomid".geojson" | head -n 1)
+    jq -c .features[0].properties < $file | sed 's/\\"//g' | sed 's/,[^:,]*:/:/g' | sed 's/}/:/' | awk -F ':' '{print $2";"$3";"$4";"$5";"$6";"$7";"$8";"$9";"$10";"$11";"$12";"$13";"$14";"$15";"$16";"$17";"$18}' >> denominations.csv
 done
-sed -i 's/Côtes de Bourg; Bourg et Bourgeais/Côtes de Bourg, Bourg et Bourgeais/' denominations.csv
-
 echo "<html><body><h1>Dénominations INAO</h1><ul>" > denominations.html
-tail -n +2 denominations.csv | sed 's/"//g' | awk -F ';' '{print $8";"$9}' | sort -u | awk -F ';' '{printf("<li><a href=\"denominations/%05d.html\">%s</a></li>\n", $1, $2);}' >> denominations.html
+tail -n +2 denominations.csv | sed 's/"//g' | awk -F ';' '{printf("<li><a href=\"denominations/%05d.html\">%s</a></li>\n", $8, $9);}' >> denominations.html
 echo "</ul></body></html>" >> denominations.html
 
-tail -n +2 denominations.csv | awk -F ';' '{print $8";"$9}' | sed 's/"//g' | sort -u | awk -F ';' '{printf("%05d;%s\n", $1, $2);}' | sed 's/"//g' | while read line ; do
+tail -n +2 denominations.csv | awk -F ';' '{printf("%05d;%s\n", $8, $9);}' | sed 's/"//g' | while read line ; do
     denomid=$(echo $line | sed 's/;.*//')
     denomination=$(echo $line | sed 's/.*;//')
-    denomorig=$(echo $denomid | sed 's/^0*//')
-
     echo "<html><body><h1>"$denomination"</h1><p>Liste des villes:</p><table>" > "denominations/"$denomid".html"
-    grep '";'$denomorig';"' denominations.csv | awk -F ';' '{if ($8 = '$denomorig') print $10";"$11;}' | sed 's/"//g' | awk -F ';' '{dep=substr($1,0,2); print "<tr class=\"ville\"><td>"dep"</td><td><a href=\"../carte.html?insee="$1"&denomid='$denomid'\">"$2"</a></td></tr>"}' >> "denominations/"$denomid".html"
+    find . -name $denomid'.geojson' | while read geo ; do
+        cat $geo | sed 's/.*"insee"://' | sed 's/insee2011".*//' | awk -F '"' '{dep=substr($2,0,2); print "<tr class=\"ville\"><td>"dep"</td><td><a href=\"../carte.html?insee="$2"&denomid='$denomid'\">"$6"</a></td></tr>"}'
+    done >> "denominations/"$denomid".html"
+    
     echo "</table></body></html>" >> "denominations/"$denomid".html"
     echo "denominations/"$denomid".html"
-
-    echo -n "[" > "denominations/"$denomid".json"
-    grep '";'$denomorig';"' denominations.csv | awk -F ';' '{if ($8 = '$denomorig') print $10",";}' | tr -d '\n' >> "denominations/"$denomid".json"
-    sed -i 's/,$/]/' "denominations/"$denomid".json"
 done
-
-echo "<html><body><h1>Communes ayant des dénominations INAO</h1><ul>" > communes.html
-tail -n +2 denominations.csv | awk -F ';' '{print $10";"$11}' | sed 's/"//g' | sort -u | awk -F ';' '{ dep=substr($1,0, 2); print "<li><a href=\"carte.html?insee="$1"\">"$2" ("dep")</a></li>" }' >> communes.html
-echo "</ul></body></html>" >> communes.html
