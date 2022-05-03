@@ -1,4 +1,4 @@
-dt,type_prod,categorie,type_denom,type_ig,id_app,app,id_denom,denom,insee,nomcom,insee2011,nomcom2011,id_aire,crinao,grp_name1,grp_name2
+dt;type_prod;categorie;type_denom;type_ig;id_app;app;id_denom;denom;insee;nomcom;insee2011;nomcom2011;id_aire;crinao;grp_name1;grp_name2
 "Corse";"Vins";"Vin tranquille";"appellation";"AOC";291;"Ajaccio";1376;"Ajaccio";"2A351";"VILLANOVA";"2A351";"VILLANOVA";1129;"Provence Corse";"Corse";"Corse"
 "Dijon";"Vins";"Vin tranquille";"appellation";"AOC";126;"Aloxe-Corton";242;"Aloxe-Corton";"21480";"PERNAND-VERGELESSES";"21480";"PERNAND-VERGELESSES";187;"Bourgogne, Beaujolais, Savoie, Jura";"Bourgogne et Beaujolais";"Bourgogne"
 "Dijon";"Vins";"Vin tranquille";"dénomination géographique complémentaire";"AOC";126;"Aloxe-Corton";257;"Aloxe-Corton premier cru";"21480";"PERNAND-VERGELESSES";"21480";"PERNAND-VERGELESSES";202;"Bourgogne, Beaujolais, Savoie, Jura";"Bourgogne et Beaujolais";"Bourgogne"
