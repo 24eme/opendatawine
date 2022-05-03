@@ -78,8 +78,12 @@ tail -n +2 denominations.csv | awk -F ';' '{printf("%05d;%s\n", $8, $9);}' | sed
     denomination=$(echo $line | sed 's/.*;//')
     echo "<html><body><h1>"$denomination"</h1><p>Liste des villes:</p><table>" > "denominations/"$denomid".html"
     find . -name $denomid'.geojson' | while read geo ; do
-        cat $geo | sed 's/.*"insee"://' | sed 's/insee2011".*//' | awk -F '"' '{dep=substr($2,0,2); print "<tr><td>"dep"</td><td><a href=\"../carte.html?insee="$2"&denomid='$denomid'\">"$6"</a></td></tr>"}'
+        cat $geo | sed 's/.*"insee"://' | sed 's/insee2011".*//' | awk -F '"' '{dep=substr($2,0,2); print "<tr class=\"ville\"><td>"dep"</td><td><a href=\"../carte.html?insee="$2"&denomid='$denomid'\">"$6"</a></td></tr>"}'
     done >> "denominations/"$denomid".html"
+    echo -n '<tr class="total"><td>Carte globale</td><td><a href="../carte.html?denomid='$denomid'&insee=' >> "denominations/"$denomid".html"
+    echo -n $(grep 'class="ville"' "denominations/"$denomid".html" | sed 's/&/=/g'  | awk -F '=' '{print $4","}' ) | sed 's/ //g'  | sed 's/,$//' >> "denominations/"$denomid".html"
+    echo '">Carte Totale</a></td></tr>' >> "denominations/"$denomid".html"
+    
     echo "</table></body></html>" >> "denominations/"$denomid".html"
     echo "denominations/"$denomid".html"
 done
