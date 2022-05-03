@@ -61,15 +61,14 @@ ls -d delimitation_aoc/*/*/ | while read villedir ; do
     cd - > /dev/null
 done
 
-echo "dt,type_prod,categorie,type_denom,type_ig,id_app,app,id_denom,denom,insee,nomcom,insee2011,nomcom2011,id_aire,crinao,grp_name1,grp_name2" > denominations.csv
+echo "dt;type_prod;categorie;type_denom;type_ig;id_app;app;id_denom;denom;insee;nomcom;insee2011;nomcom2011;id_aire;crinao;grp_name1;grp_name2" > denominations.csv
 cat $(find delimitation_aoc/ -name denominations.json) | grep '^"' | sort -u | sed 's/.geojson//' | awk -F '"' '{print $4";"$2}' | while read line; do
     denomid=$(echo $line| sed 's/;.*//')
     denomination=$(echo $line| sed 's/.*;//')
     file=$(find delimitation_aoc -name $denomid".geojson" | head -n 1)
     jq -c .features[0].properties < $file | sed 's/\\"//g' | sed 's/,[^:,]*:/:/g' | sed 's/}/:/' | awk -F ':' '{print $2";"$3";"$4";"$5";"$6";"$7";"$8";"$9";"$10";"$11";"$12";"$13";"$14";"$15";"$16";"$17";"$18}' >> denominations.csv
 done
-
-echo "<html><body><h1>Dénomination INAO</h1><ul>" > denominations.html
+echo "<html><body><h1>Dénominations INAO</h1><ul>" > denominations.html
 tail -n +2 denominations.csv | sed 's/"//g' | awk -F ';' '{printf("<li><a href=\"denominations/%05d.html\">%s</a></li>\n", $8, $9);}' >> denominations.html
 echo "</ul></body></html>" >> denominations.html
 
@@ -80,9 +79,6 @@ tail -n +2 denominations.csv | awk -F ';' '{printf("%05d;%s\n", $8, $9);}' | sed
     find . -name $denomid'.geojson' | while read geo ; do
         cat $geo | sed 's/.*"insee"://' | sed 's/insee2011".*//' | awk -F '"' '{dep=substr($2,0,2); print "<tr class=\"ville\"><td>"dep"</td><td><a href=\"../carte.html?insee="$2"&denomid='$denomid'\">"$6"</a></td></tr>"}'
     done >> "denominations/"$denomid".html"
-    echo -n '<tr class="total"><td>Carte globale</td><td><a href="../carte.html?denomid='$denomid'&insee=' >> "denominations/"$denomid".html"
-    echo -n $(grep 'class="ville"' "denominations/"$denomid".html" | sed 's/&/=/g'  | awk -F '=' '{print $4","}' ) | sed 's/ //g'  | sed 's/,$//' >> "denominations/"$denomid".html"
-    echo '">Carte Totale</a></td></tr>' >> "denominations/"$denomid".html"
     
     echo "</table></body></html>" >> "denominations/"$denomid".html"
     echo "denominations/"$denomid".html"
