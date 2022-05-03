@@ -83,3 +83,8 @@ tail -n +2 denominations.csv | awk -F ';' '{printf("%05d;%s\n", $8, $9);}' | sed
     echo "</table></body></html>" >> "denominations/"$denomid".html"
     echo "denominations/"$denomid".html"
 done
+
+echo "<html><body><h1>Communes ayant des dénominations INAO</h1><ul>" > communes.html
+tail -n +2 denominations.csv | awk -F ';' '{print $10";"$11}' | sed 's/"//g' | sort -u | awk -F ';' '{ dep=substr($1,0, 2); print "<li><a href=\"carte.html?insee="$1"\">"$2" ("dep")</a></li>" }' >> communes.html
+echo "</ul></body></html>" >> communes.html
+
