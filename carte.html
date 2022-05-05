@@ -44,7 +44,7 @@ let searchParams = new URLSearchParams(window.location.search)
 var communes = searchParams.get('insee').split(',');
 var dep = communes[0].substring(0, 2);
 var denomid = searchParams.get('denomid');
-var base_opendata = 'https://raw.githubusercontent.com/24eme/opendatawine/master';
+var base_opendata = 'https://data.opendatawine.fr';
 (function() {
 	$('#loadermessage').html("Prépartion de la carte");
 	var map = L.map('map', {center:[47.1113,2.6038],zoom:7});
