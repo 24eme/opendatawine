@@ -65,14 +65,15 @@ echo "dt;type_prod;categorie;type_denom;type_ig;id_app;app;id_denom;denom;insee;
 cat $(find delimitation_aoc/ -name denominations.json) | grep '^"' | sort -u | sed 's/.geojson//' | awk -F '"' '{print $4";"$2}' | while read line; do
     denomid=$(echo $line| sed 's/;.*//')
     denomination=$(echo $line| sed 's/.*;//')
-    file=$(find delimitation_aoc -name $denomid".geojson" | head -n 1)
-    jq -c .features[0].properties < $file | sed 's/\\"//g' | sed 's/,[^:,]*:/:/g' | sed 's/}/:/' | awk -F ':' '{print $2";"$3";"$4";"$5";"$6";"$7";"$8";"$9";"$10";"$11";"$12";"$13";"$14";"$15";"$16";"$17";"$18}' >> denominations.csv
+    find delimitation_aoc -name $denomid".geojson"  | while read file ; do
+        jq -c .features[0].properties < $file | sed 's/\\"//g' | sed 's/,[^:,]*:/:/g' | sed 's/}/:/' | awk -F ':' '{print $2";"$3";"$4";"$5";"$6";"$7";"$8";"$9";"$10";"$11";"$12";"$13";"$14";"$15";"$16";"$17";"$18}' >> denominations.csv
+    done
 done
 echo "<html><body><h1>Dénominations INAO</h1><ul>" > denominations.html
-tail -n +2 denominations.csv | sed 's/"//g' | awk -F ';' '{printf("<li><a href=\"denominations/%05d.html\">%s</a></li>\n", $8, $9);}' >> denominations.html
+tail -n +2 denominations.csv | sed 's/"//g' | awk -F ';' '{print $8";"$9}' | sort -u | awk -F ';' '{printf("<li><a href=\"denominations/%05d.html\">%s</a></li>\n", $1, $2);}' >> denominations.html
 echo "</ul></body></html>" >> denominations.html
 
-tail -n +2 denominations.csv | awk -F ';' '{printf("%05d;%s\n", $8, $9);}' | sed 's/"//g' | while read line ; do
+tail -n +2 denominations.csv | awk -F ';' '{print $8";"$9}' | sort -u | awk -F ';' '{printf("%05d;%s\n", $1, $2);}' | sed 's/"//g' | while read line ; do
     denomid=$(echo $line | sed 's/;.*//')
     denomination=$(echo $line | sed 's/.*;//')
     echo "<html><body><h1>"$denomination"</h1><p>Liste des villes:</p><table>" > "denominations/"$denomid".html"
