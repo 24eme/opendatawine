@@ -77,10 +77,12 @@ tail -n +2 denominations.csv | awk -F ';' '{print $8";"$9}' | sort -u | awk -F '
     denomid=$(echo $line | sed 's/;.*//')
     denomination=$(echo $line | sed 's/.*;//')
     echo "<html><body><h1>"$denomination"</h1><p>Liste des villes:</p><table>" > "denominations/"$denomid".html"
+    echo -n "[" > "denominations/"$denomid".json"
     find . -name $denomid'.geojson' | while read geo ; do
         cat $geo | sed 's/.*"insee"://' | sed 's/insee2011".*//' | awk -F '"' '{dep=substr($2,0,2); print "<tr class=\"ville\"><td>"dep"</td><td><a href=\"../carte.html?insee="$2"&denomid='$denomid'\">"$6"</a></td></tr>"}'
+        cat $geo | sed 's/.*"insee"://' | sed 's/insee2011".*//' | awk -F '"' '{print $2","}' | tr -d '\n' >> "denominations/"$denomid".json"
     done >> "denominations/"$denomid".html"
-    
+    sed -i 's/,$/]/' "denominations/"$denomid".json"
     echo "</table></body></html>" >> "denominations/"$denomid".html"
     echo "denominations/"$denomid".html"
 done
