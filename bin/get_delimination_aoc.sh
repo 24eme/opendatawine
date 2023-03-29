@@ -14,31 +14,35 @@ if ! test -f e79a7c68-2fe4-4225-a802-8379a8d6426c.zip ; then
 fi
 md5sum=$(md5sum e79a7c68-2fe4-4225-a802-8379a8d6426c.zip)
 curl -s -L https://www.data.gouv.fr/fr/datasets/r/e79a7c68-2fe4-4225-a802-8379a8d6426c -o e79a7c68-2fe4-4225-a802-8379a8d6426c.zip -z e79a7c68-2fe4-4225-a802-8379a8d6426c.zip
-if ! test "$md5sum" = "$(md5sum e79a7c68-2fe4-4225-a802-8379a8d6426c.zip)" || ! test -d "geo/features" ; then
-    rm -rf geo/features
-    rm -f *delim_parcellaire_aoc_shp.shp
+if ! test "$md5sum" = "$(md5sum e79a7c68-2fe4-4225-a802-8379a8d6426c.zip)" || ! test -d "features" ; then
+    rm -rf features
+    rm -f *delim* output.geojson
     unzip -q e79a7c68-2fe4-4225-a802-8379a8d6426c.zip || rm e79a7c68-2fe4-4225-a802-8379a8d6426c.zip
-    ogr2ogr -f GeoJSON -t_srs crs:84 output.geojson *delim_parcellaire_aoc_shp.shp
-    rm *delim_parcellaire_aoc_shp.shp
-    cat output.geojson | jq --compact-output ".features[]" | split -l 1 --additional-suffix=".geojson" /dev/stdin "features/"$i
+    ogr2ogr -f GeoJSON -t_srs crs:84 output.geojson *.shp
+    rm *.shp *.cpg *.prj *.shx
+    cat output.geojson | sed 's/{"type": "Feature"/\n{"type": "Feature"/g' | grep '"type": "Feature"' | sed 's/,$//' | split -l 1 --additional-suffix=".geojson" /dev/stdin "features/"
     rm output.geojson
 fi
 cd ..
 
-ls geo/features/* | while read feature ; do
-    sed 's/.*id_denom"://' $feature  | sed 's/,.*//'
-done  | sed 's/,.*//' | sort -u | while read iddenom; do
+sed -i 's/"insee": "ok"/"insee": "34162"/' geo/features/znuy.geojson
+
+rgrep id_denom geo/features/ | sed 's/.*id_denom"://' | sed 's/,.*//' | sort -u | while read iddenom; do
     iddenum_print=$( printf '%05d' $iddenom )
-    rgrep -l '"id_denom":'$iddenom',' geo/features/ | while read json ; do
-        insee=$(cat $json  | sed 's/.*"insee":"//' | sed 's/".*//' )
+    rgrep -l '"id_denom": *'$iddenom',' geo/features/ | while read json ; do
+        insee=$(cat $json  | sed 's/.*"insee": *"//' | sed 's/".*//' )
+        if test "$insee" = '{ '; then
+            insee=$(cat $json  | sed 's/.*"insee2011": *"//' | sed 's/".*//' )
+            sed -i 's/"insee": null/"insee": "'$insee'"/' $json
+        fi
         dep=$(echo $insee | sed 's/...$//')
         mkdir -p "delimitation_aoc/"$dep"/"$insee
         file="delimitation_aoc/"$dep"/"$insee"/"$iddenum_print".geojson"
         echo '{"type": "FeatureCollection","name": "aoc_geojson","features": [' > $file
-        cat $json >> $file
+        cat $json | jq --compact-output . >> $file
         echo ']}' >> $file
         cat $file | tr -d '\n' > $file".tmp"
-        mv $file".tmp" $file
+        mv -f $file".tmp" $file
         echo >> $file
     done
 done
