@@ -21,7 +21,18 @@
 <link rel="stylesheet" type="text/css" media="screen" href="web/js/lib/leaflet/marker.css"/>
 </head>
 <body role="document">
+<h1>Dénomination AOC sur la commune <span id="commune_nom"></span></h1>
+<div id="loader">
+	<pre id="loadermessage"></pre>
+</div>
+<div id="pagecontainer">
 <div id="map" class="col-12" style="height:800px; width:1200px; margin-bottom: 20px;">
+</div>
+<div>
+	<h2>Téléchargement</h2>
+	<div id="download_list">
+	</div>
+</div>
 </div>
 <style>
 .sectionlabel, .parcellelabel {
@@ -30,10 +41,12 @@
 </style>
 <script type="text/javascript">
 let searchParams = new URLSearchParams(window.location.search)
-var commune = searchParams.get('insee');
-var dep = commune.substring(0, 2);
+var communes = searchParams.get('insee').split(',');
+var dep = communes[0].substring(0, 2);
 var denomid = searchParams.get('denomid');
+var base_opendata = 'https://data.opendatawine.fr';
 (function() {
+	$('#loadermessage').html("Prépartion de la carte");
 	var map = L.map('map', {center:[47.1113,2.6038],zoom:7});
 	L.tileLayer('https://wxs.ign.fr/{ignApiKey}/geoportail/wmts?'+
 		        '&REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&TILEMATRIXSET=PM'+
@@ -54,41 +67,62 @@ var denomid = searchParams.get('denomid');
 	}).addTo(map);
 	
 	var layers = {};
+	var downloads = {};
 	async function loadFeatures() {
-		let url = 'delimitation_aoc/'+dep+'/'+commune+'/denominations.json';
-		console.log(url);
+	  let bounds = null;
+	  let noms_communes = [];
+	  for(c in communes) {
+		let commune = communes[c];
+		$('#loadermessage').html("Récupération des dénominations de "+commune);
+		let url = base_opendata +'/delimitation_aoc/'+dep+'/'+commune+'/denominations.json';
 		let denoms = await fetch(url);
 		let json = await denoms.json();
 		let base = denoms.url.replace(/[^\/]+$/, '')
-
 		let i = 0;
-		let bounds = null;
+		let geojson;
+		let mycommune;
 		for(nom in json) {
+			$('#loadermessage').html("Récupération des délimitations "+nom+" dans "+commune);
 			let geojson_content = await fetch(base+json[nom]);
 			let current_denomid = json[nom].replace(".geojson","");
 			htmlname = '<span style="display:inline-block;width:25px;opacity:0.75;background-color:'+colors[i]+'"> &nbsp; </span> '+nom;
-			let geojson = await geojson_content.json();
+			geojson = await geojson_content.json();
+			mycommune = geojson.features[0].properties.nomcom;
+			downloads["Délimination de "+nom+" - "+mycommune] = geojson_content.url;
 			layers[htmlname] = L.geoJSON(geojson,{style:{fillColor:colors[i],weight:0,opacity:0.75,dashArray:'5',color:'black',fillOpacity:0.4}});
-			if (!bounds) {
-				bounds = layers[htmlname].getBounds();
-			}else{
-				bounds = bounds.extend(layers[htmlname].getBounds());
-			}
 			if (!denomid || denomid == current_denomid) {
 				layers[htmlname].addTo(map);
+				if (!bounds) {
+					bounds = layers[htmlname].getBounds();
+				}else{
+					bounds = bounds.extend(layers[htmlname].getBounds());
+				}
 			}
+			$('#loadermessage').html("Récupération des délimitations "+nom+" dans "+commune+" terminée");
 			i++;
 		}
-
-		map.fitBounds(bounds);
-		
+		noms_communes.push(mycommune);
 		url = base+'/cadastre-parcelles.json';
+		$('#loadermessage').html("Récupération du cadastre de "+commune);
 		let cadastreaccess = await fetch(url);
-		parcelle_nom = '<span style="display:inline-block;width:23px;border:1px solid black;opacity:0.75;"> &nbsp; </span> Parcelles cadastrales'
+		downloads["Parcelles cadastrales - "+mycommune] = cadastreaccess.url;
+		parcelle_nom = '<span style="display:inline-block;width:23px;border:1px solid black;opacity:0.75;"> &nbsp; </span> Parcelles cadastrales - '+mycommune;
 		layers[parcelle_nom] = L.geoJSON(await cadastreaccess.json(),{style:{weight:1,opacity:0.75,color:'black'}});
 		layers[parcelle_nom].addTo(map);
+		$('#loadermessage').html("Récupération du cadastre de "+commune+" terminée");
+	  }
+	  $('#loadermessage').html("");
+	  $('#commune_nom').html(noms_communes.join(', '));
 
-		L.control.layers({},layers,{position:'bottomleft',collapsed:false}).addTo(map);
+	  map.fitBounds(bounds);
+	  
+	  L.control.layers({},layers,{position:'bottomleft',collapsed:false}).addTo(map);
+	  let html_download = '<ul>';
+	  for(id in downloads){
+	  	html_download += '<li><a href="'+downloads[id]+'">'+id+'</a></li>';
+	  }
+	  html_download += "</ul>";
+	  $('#download_list').html(html_download);
 	}
 	loadFeatures();
 })();
