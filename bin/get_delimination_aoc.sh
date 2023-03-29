@@ -19,7 +19,7 @@ if ! test "$md5sum" = "$(md5sum e79a7c68-2fe4-4225-a802-8379a8d6426c.zip)" || ! 
     rm -f *delim* output.geojson
     unzip -q e79a7c68-2fe4-4225-a802-8379a8d6426c.zip || rm e79a7c68-2fe4-4225-a802-8379a8d6426c.zip
     ogr2ogr -f GeoJSON -t_srs crs:84 output.geojson *.shp
-    rm *.shp *.cpg *.prj *.shx
+    rm *.shp *.cpg *.prj *.shx *.dbf
     cat output.geojson | sed 's/{"type": "Feature"/\n{"type": "Feature"/g' | grep '"type": "Feature"' | sed 's/,$//' | split -l 1 --additional-suffix=".geojson" /dev/stdin "features/"
     rm output.geojson
 fi
