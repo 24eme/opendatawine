@@ -82,15 +82,16 @@ echo "</ul></body></html>" >> denominations.html
 tail -n +2 denominations.csv | awk -F ';' '{print $8";"$9}' | sed 's/"//g' | sort -u | awk -F ';' '{printf("%05d;%s\n", $1, $2);}' | sed 's/"//g' | while read line ; do
     denomid=$(echo $line | sed 's/;.*//')
     denomination=$(echo $line | sed 's/.*;//')
+    denomorig=$(echo $denomid | sed 's/^0*//')
+
     echo "<html><body><h1>"$denomination"</h1><p>Liste des villes:</p><table>" > "denominations/"$denomid".html"
-    echo -n "[" > "denominations/"$denomid".json"
-    find . -name $denomid'.geojson' | while read geo ; do
-        cat $geo | jq -c '[.features[0].properties.insee,.features[0].properties.nomcom]' | awk -F '"' '{dep=substr($2,0,2); print "<tr class=\"ville\"><td>"dep"</td><td><a href=\"../carte.html?insee="$2"&denomid='$denomid'\">"$4"</a></td></tr>"}'
-        cat $geo | jq -c .features[0].properties.insee | awk -F '"' '{print $2","}' | tr -d '\n' >> "denominations/"$denomid".json"
-    done >> "denominations/"$denomid".html"
-    sed -i 's/,$/]/' "denominations/"$denomid".json"
+    grep '";'$denomorig';"' denominations.csv | awk -F ';' '{if ($8 = '$denomorig') print $10";"$11;}' | sed 's/"//g' | awk -F ';' '{dep=substr($1,0,2); print "<tr class=\"ville\"><td>"dep"</td><td><a href=\"../carte.html?insee="$1"&denomid='$denomid'\">"$2"</a></td></tr>"}' >> "denominations/"$denomid".html"
     echo "</table></body></html>" >> "denominations/"$denomid".html"
     echo "denominations/"$denomid".html"
+
+    echo -n "[" > "denominations/"$denomid".json"
+    grep '";'$denomorig';"' denominations.csv | awk -F ';' '{if ($8 = '$denomorig') print $10",";}' | sed 's/"//g' | tr -d '\n' >> "denominations/"$denomid".json"
+    sed -i 's/,$/]/' "denominations/"$denomid".json"
 done
 
 echo "<html><body><h1>Communes ayant des dénominations INAO</h1><ul>" > communes.html
