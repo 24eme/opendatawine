@@ -8,7 +8,7 @@ git checkout bin carte.html CNAME communes.html denominations denominations.csv 
 rm -rf delimitation_aoc
 git reset $hashgithubpages
 git checkout .gitignore
-git add bin carte.html CNAME communes.html denominations.csv denominations.html index.html LICENSE
+git add bin carte.html CNAME communes.html denominations denominations.csv denominations.html index.html LICENSE
 git commit -m 'Manual merge branch master ('$hashmaster') into githubpages'
 git switch master
 
