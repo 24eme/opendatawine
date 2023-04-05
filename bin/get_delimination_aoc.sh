@@ -100,11 +100,10 @@ tail -n +2 denominations.csv | awk -F ';' '{print $8";"$9}' | sed 's/"//g' | sor
     echo "denominations/"$denomid".html"
 
     echo -n "[" > "denominations/"$denomid".json"
-    grep '";'$denomorig';"' denominations.csv | awk -F ';' '{if ($8 = '$denomorig') print $10",";}' | sed 's/"//g' | tr -d '\n' >> "denominations/"$denomid".json"
+    grep '";'$denomorig';"' denominations.csv | awk -F ';' '{if ($8 = '$denomorig') print $10",";}' | tr -d '\n' >> "denominations/"$denomid".json"
     sed -i 's/,$/]/' "denominations/"$denomid".json"
 done
 
 echo "<html><body><h1>Communes ayant des dénominations INAO</h1><ul>" > communes.html
 tail -n +2 denominations.csv | awk -F ';' '{print $10";"$11}' | sed 's/"//g' | sort -u | awk -F ';' '{ dep=substr($1,0, 2); print "<li><a href=\"carte.html?insee="$1"\">"$2" ("dep")</a></li>" }' >> communes.html
 echo "</ul></body></html>" >> communes.html
-
