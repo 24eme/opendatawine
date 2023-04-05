@@ -38,11 +38,21 @@ rgrep id_denom geo/features/ | sed 's/.*id_denom"://' | sed 's/,.*//' | sort -u 
         dep=$(echo $insee | sed 's/...$//')
         mkdir -p "delimitation_aoc/"$dep"/"$insee
         file="delimitation_aoc/"$dep"/"$insee"/"$iddenum_print".geojson"
-        echo '{"type": "FeatureCollection","name": "aoc_geojson","features": [' > $file
-        cat $json | jq --compact-output . >> $file
-        echo ']}' >> $file
-        cat $file | tr -d '\n' > $file".tmp"
-        mv -f $file".tmp" $file
+        if ! test -f $file ; then
+            echo '{"type": "FeatureCollection","name": "aoc_geojson","features": [' > $file
+            cat $json | jq --compact-output . >> $file
+            echo ']}' >> $file
+            cat $file | tr -d '\n' > $file".tmp"
+            mv -f $file".tmp" $file
+        else
+            echo '{"type": "FeatureCollection","name": "aoc_geojson","features": [' > $file."tmp"
+            cat $file | jq --compact-output .features[0] >> $file".tmp"
+            echo "," >> $file".tmp"
+            cat $json | jq --compact-output . >> $file".tmp"
+            echo ']}' >> $file".tmp"
+            cat $file".tmp"  | tr -d '\n' > $file
+            rm -f $file".tmp"
+        fi
         echo >> $file
     done
 done
