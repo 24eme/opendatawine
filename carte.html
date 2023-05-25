@@ -28,9 +28,16 @@
 </div>
 </div>
 <div class="col">
-	<h2>Les parcelles</h2>
-	<ul id="list_parcelles" style="max-height: 800px; overflow-x: scroll">
+	<div id="vos_parcelles" style="display: none;">
+	<h2>Parcelles sélectionnées</h2>
+	<ul id="list_vos_parcelles" style="max-height: 200px; overflow-x: scroll">
 	</ul>
+	</div>
+	<div id="les_parcelles">
+	<h2>Parcelles de la commune</h2>
+	<ul id="list_les_parcelles" style="max-height: 600px; overflow-x: scroll">
+	</ul>
+	</div>
 </div>
 </div>
 <div>
@@ -138,27 +145,22 @@ var map;
 		features.sort(function (feature1, feature2) { return feature1.feature.properties['id'] > feature2.feature.properties['id'] }).forEach(function(feature) {
 			properties = feature.feature.properties;
 			parcelle_id = properties["id"];
-			parcelle_title = '';
-			if (properties['prefixe'] != '000') {
-				parcelle_title = properties['prefixe']+'&nbsp;';
-			}
-			parcelle_title += properties['section']+'&nbsp;'+properties['numero']
-			content = '<h3>'+parcelle_title+'</h3>';
+			content = '<h3>'+properties2title(properties)+'</h3>';
 			content += '<ul>';
 			contenance = '';
 			for(var i in properties) {
 				if (i == 'contenance') {
-					properties[i] = parseFloat(properties[i] / 1000).toFixed(4)+' hl';
-					contenance = properties[i];
+					properties[i] = parseFloat(properties['contenance'] / 1000).toFixed(4)+' hl';
 				}else if (i == 'id') {
-					properties[i] = '<a href="#'+properties[i]+'">'+properties[i]+'</a>';
+					content += '<li>'+i+' : <a href="#'+properties[i]+'">'+properties[i]+'</a></li>';
+					continue;
 				}
-				content += "<li>"+i+" : "+properties[i]+"</span></li>";
+				content += "<li>"+i+" : "+properties[i]+"</li>";
 			}
 			content += '</ul>';
 			feature.bindPopup(content);
 			my_features[parcelle_id] = feature;
-			$('#list_parcelles').append('<li id="'+parcelle_id+'" data-iud="'+parcelle_id+'" class="parcelle"><span style="min-width: 50px;display:inline-block;"><a href="#'+parcelle_id+'" onclick="openParcelle($(this).parent().parent()[0].dataset.iud);">'+parcelle_title+'</a> : </span><span class="text-right" style="width: 100px;display: inline-block;text-align: right;">'+contenance+'</span></li>')
+			$('#list_les_parcelles').append(properties2li(properties));
 
 			map.addLayer( new L.Marker(
 		                    feature.getBounds().getCenter(),
@@ -167,7 +169,7 @@ var map;
 		                        icon: L.divIcon( iconOptions = {
 		                                iconSize  : [15, 15],
 		                                className : 'parcellelabel',
-		                                html: '<b>' +  parcelle_title + '</b>'
+		                                html: '<b>' +  properties2title(properties) + '</b>'
 		                        })
 		                    }
 		                )
@@ -178,7 +180,8 @@ var map;
 
 		console.log(window.location.hash);
 		if (window.location.hash) {
-			openParcelle(window.location.hash.substring(1));
+			parcelles = window.location.hash.substring(1).split(',').filter((item, i, ar) => ar.indexOf(item) === i);;
+			selectParcelles(parcelles);
 		}
 		map.on('zoomend', function() {
     		if (map.getZoom() > 16){
@@ -189,19 +192,41 @@ var map;
 		});
 	}
 })();
-var current_parcelle = null;
+var current_parcelles = [];
+function selectParcelles(uid_parcelles) {
+	current_parcelles.forEach(function(cuid) {
+		if (my_features[cuid]) {
+			my_features[cuid].setStyle({'color': 'black', 'weight': '1'});//, 'stroke-opacity': '0.75', 'stroke-width': '1'});
+		}
+	});
+	current_parcelles = parcelles;
+	current_parcelles.forEach(function(cuid) {
+		if (my_features[cuid]) {
+			my_features[cuid].setStyle({'color': 'red', 'fillColor': 'black', 'weight': '2'});//, 'stroke-opacity': '1', 'stroke-width': '2'});
+			$('#list_vos_parcelles').append(properties2li(my_features[cuid].feature.properties));
+		}
+	});
+	$('#vos_parcelles').show();
+}
 function openParcelle(uid) {
 	if (!uid || !my_features[uid]) {
 		return;
 	}
 	map.fitBounds(my_features[uid].getBounds());
-	if (current_parcelle) {
-		current_parcelle.setStyle({'color': 'black', 'weight': '1'});//, 'stroke-opacity': '0.75', 'stroke-width': '1'});
-	}
-	current_parcelle = my_features[uid];
-	current_parcelle.setStyle({'color': 'red', 'fillColor': 'black', 'weight': '2'});//, 'stroke-opacity': '1', 'stroke-width': '2'});
 	my_features[uid].openPopup();
 	return false;
+}
+function properties2title(properties) {
+	var parcelle_title = '';
+	if (properties['prefixe'] != '000') {
+		parcelle_title = properties['prefixe']+'&nbsp;';
+	}
+	parcelle_title += properties['section']+'&nbsp;'+properties['numero'];
+	return parcelle_title;
+
+}
+function properties2li(properties) {
+	return '<li id="'+properties['id']+'" data-uid="'+properties['id']+'" class="parcelle"><span style="min-width: 50px;display:inline-block;"><a href="#'+properties['id']+'" onclick="openParcelle($(this).parent().parent()[0].dataset.uid); return false;">'+properties2title(properties)+'</a> : </span><span class="text-right" style="width: 100px;display: inline-block;text-align: right;">'+properties['contenance']+'</span></li>';
 }
 </script>
 </body>
