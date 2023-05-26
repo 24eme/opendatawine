@@ -204,6 +204,8 @@ function selectParcelles(uid_parcelles) {
 		if (my_features[cuid]) {
 			my_features[cuid].setStyle({'color': 'red', 'fillColor': 'black', 'weight': '2'});//, 'stroke-opacity': '1', 'stroke-width': '2'});
 			$('#list_vos_parcelles').append(properties2li(my_features[cuid].feature.properties));
+		}else{
+			$('#list_vos_parcelles').append('<li>'+cuid+' non trouvée</li>');
 		}
 	});
 	$('#vos_parcelles').show();
