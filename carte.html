@@ -27,8 +27,8 @@
 <div id="map" style="height:800px; width:100%; margin-bottom: 20px;">
 </div>
 </div>
-<div class="col">
-	<div id="vos_parcelles" style="display: none;">
+<div class="col" id="sidebar"  style="display: none;">
+	<div id="vos_parcelles">
 	<h2>Parcelles sélectionnées</h2>
 	<ul id="list_vos_parcelles" style="max-height: 200px; overflow-x: scroll">
 	</ul>
@@ -121,13 +121,16 @@ var map;
 		let cadastreaccess = await fetch(url);
 		downloads["Parcelles cadastrales - "+mycommune] = cadastreaccess.url;
 		parcelle_nom = '<span style="display:inline-block;width:23px;border:1px solid black;opacity:0.75;"> &nbsp; </span> Parcelles cadastrales - '+mycommune;
+		$('#loadermessage').html("Récupération du cadastre de "+commune+" : chargement des données géographique");
 		layers[parcelle_nom] = L.geoJSON(await cadastreaccess.json(),{style:{weight:1,opacity:0.75,color:'black'}});
+		$('#loadermessage').html("Récupération du cadastre de "+commune+" : ajout des parcelles dans la carte");
 		layers[parcelle_nom].addTo(map);
+		$('#loadermessage').html("Récupération du cadastre de "+commune+" : calcul du listing des parcellaires");
 		displayParcellesList(layers[parcelle_nom].getLayers());
 		$('#loadermessage').html("Récupération du cadastre de "+commune+" terminée");
 	  }
-	  $('#loadermessage').html("");
 	  $('#commune_nom').html(noms_communes.join(', '));
+	  setTimeout( () => {$('#loadermessage').html("");}, 500);
 
 	  map.fitBounds(bounds);
 
@@ -208,7 +211,7 @@ function selectParcelles(uid_parcelles) {
 			$('#list_vos_parcelles').append('<li>'+cuid+' non trouvée</li>');
 		}
 	});
-	$('#vos_parcelles').show();
+	$('#sidebar').show();
 }
 function openParcelle(uid) {
 	if (!uid || !my_features[uid]) {
