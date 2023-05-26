@@ -153,7 +153,7 @@ var map;
 			contenance = '';
 			for(var i in properties) {
 				if (i == 'contenance') {
-					properties[i] = parseFloat(properties['contenance'] / 1000).toFixed(4)+' hl';
+					properties[i] = parseFloat(properties['contenance'] / 1000).toFixed(4)+' ha';
 				}else if (i == 'id') {
 					content += '<li>'+i+' : <a href="#'+properties[i]+'">'+properties[i]+'</a></li>';
 					continue;
