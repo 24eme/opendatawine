@@ -121,7 +121,7 @@ var map;
 		let cadastreaccess = await fetch(url);
 		downloads["Parcelles cadastrales - "+mycommune] = cadastreaccess.url;
 		parcelle_nom = '<span style="display:inline-block;width:23px;border:1px solid black;opacity:0.75;"> &nbsp; </span> Parcelles cadastrales - '+mycommune;
-		$('#loadermessage').html("Récupération du cadastre de "+commune+" : chargement des données géographique");
+		$('#loadermessage').html("Récupération du cadastre de "+commune+" : chargement des données géographique<blink>...</blink>");
 		layers[parcelle_nom] = L.geoJSON(await cadastreaccess.json(),{style:{weight:1,opacity:0.75,color:'black'}});
 		$('#loadermessage').html("Récupération du cadastre de "+commune+" : ajout des parcelles dans la carte");
 		layers[parcelle_nom].addTo(map);
