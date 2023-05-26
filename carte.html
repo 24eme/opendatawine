@@ -27,8 +27,8 @@
 <div id="map" style="height:800px; width:100%; margin-bottom: 20px;">
 </div>
 </div>
-<div class="col" id="sidebar"  style="display: none;">
-	<div id="vos_parcelles">
+<div class="col" id="sidebar" style="display: none;">
+	<div id="vos_parcelles" style="display: none;">
 	<h2>Parcelles sélectionnées</h2>
 	<ul id="list_vos_parcelles" style="max-height: 200px; overflow-x: scroll">
 	</ul>
@@ -186,6 +186,7 @@ var map;
 			parcelles = window.location.hash.substring(1).split(',').filter((item, i, ar) => ar.indexOf(item) === i);;
 			selectParcelles(parcelles);
 		}
+		$('#sidebar').show();
 		map.on('zoomend', function() {
     		if (map.getZoom() > 16){
         		$('.parcellelabel').show();
@@ -211,7 +212,7 @@ function selectParcelles(uid_parcelles) {
 			$('#list_vos_parcelles').append('<li>'+cuid+' non trouvée</li>');
 		}
 	});
-	$('#sidebar').show();
+	$('#vos_parcelles').show();
 }
 function openParcelle(uid) {
 	if (!uid || !my_features[uid]) {
