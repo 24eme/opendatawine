@@ -199,14 +199,14 @@ var current_parcelles = [];
 function selectParcelles(uid_parcelles) {
 	current_parcelles.forEach(function(cuid) {
 		if (my_features[cuid]) {
-			my_features[cuid].setStyle({'color': 'black', 'weight': '1'});//, 'stroke-opacity': '0.75', 'stroke-width': '1'});
+			my_features[cuid].setStyle({'color': 'black', 'weight': '1'});
 		}
 	});
 	current_parcelles = parcelles;
 	current_parcelles.forEach(function(cuid) {
 		if (my_features[cuid]) {
-			my_features[cuid].setStyle({'color': 'red', 'fillColor': 'black', 'weight': '2'});//, 'stroke-opacity': '1', 'stroke-width': '2'});
-			$('#list_vos_parcelles').append(properties2li(my_features[cuid].feature.properties));
+			my_features[cuid].setStyle({'color': 'red', 'fillColor': 'black', 'weight': '3'});
+			$('#list_vos_parcelles').append(properties2li(my_features[cuid].feature.properties, false));
 		}else{
 			$('#list_vos_parcelles').append('<li>'+cuid+' non trouvée</li>');
 		}
@@ -230,8 +230,13 @@ function properties2title(properties) {
 	return parcelle_title;
 
 }
-function properties2li(properties) {
-	return '<li id="'+properties['id']+'" data-uid="'+properties['id']+'" class="parcelle"><span style="min-width: 50px;display:inline-block;"><a href="#'+properties['id']+'" onclick="openParcelle($(this).parent().parent()[0].dataset.uid); return false;">'+properties2title(properties)+'</a> : </span><span class="text-right" style="width: 100px;display: inline-block;text-align: right;">'+properties['contenance']+'</span></li>';
+function properties2li(properties, with_id = true) {
+	html = '<li';
+	if (with_id) {
+		html += ' id="'+properties['id']+'"';
+	}
+	html += ' data-uid="'+properties['id']+'" class="parcelle"><span style="min-width: 50px;display:inline-block;"><a href="#'+properties['id']+'" onclick="openParcelle($(this).parent().parent()[0].dataset.uid); return false;">'+properties2title(properties)+'</a> : </span><span class="text-right" style="width: 100px;display: inline-block;text-align: right;">'+properties['contenance']+'</span></li>';
+	return html;
 }
 </script>
 </body>
