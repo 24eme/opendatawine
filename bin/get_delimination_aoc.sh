@@ -27,6 +27,7 @@ if ! test "$sha1" = "$actualsha1" || ! test -d "features" ; then
     unzip -q parcellaire-aoc-shp.zip || rm parcellaire-aoc-shp.zip
     ogr2ogr -f GeoJSON -t_srs crs:84 output.geojson *.shp
     rm *.shp *.cpg *.prj *.shx *.dbf
+    mkdir features
     cat output.geojson | sed 's/{"type": "Feature"/\n{"type": "Feature"/g' | grep '"type": "Feature"' | sed 's/,$//' | split -l 1 --additional-suffix=".geojson" /dev/stdin "features/"
     rm output.geojson
 fi
