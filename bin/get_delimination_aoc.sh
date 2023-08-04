@@ -9,18 +9,20 @@ fi
 
 mkdir -p geo/features
 cd geo
-if ! test -f e79a7c68-2fe4-4225-a802-8379a8d6426c.zip ; then
-    touch -d 1970-01-01 e79a7c68-2fe4-4225-a802-8379a8d6426c.zip
+if ! test -f delim-parcellaire-aoc-shp.zip ; then
+    touch -d 1970-01-01 delim-parcellaire-aoc-shp.zip
 fi
-md5sum=$(md5sum e79a7c68-2fe4-4225-a802-8379a8d6426c.zip)
+sha1=$(sha1sum delim-parcellaire-aoc-shp.zip)
 #################################
 # Données de https://www.data.gouv.fr/fr/datasets/delimitation-parcellaire-des-aoc-viticoles-de-linao/
 #################################
-curl -s -L https://www.data.gouv.fr/fr/datasets/r/e79a7c68-2fe4-4225-a802-8379a8d6426c -o e79a7c68-2fe4-4225-a802-8379a8d6426c.zip -z e79a7c68-2fe4-4225-a802-8379a8d6426c.zip
-if ! test "$md5sum" = "$(md5sum e79a7c68-2fe4-4225-a802-8379a8d6426c.zip)" || ! test -d "features" ; then
+curl -s -L https://www.data.gouv.fr/fr/datasets/r/e79a7c68-2fe4-4225-a802-8379a8d6426c -o delim-parcellaire-aoc-shp.zip -z delim-parcellaire-aoc-shp.zip
+actualsha1=$(sha1sum delim-parcellaire-aoc-shp.zip)
+echo "SHA1 of downloaded delim-parcellaire-aoc-shp.zip : "$actualsha1
+if ! test "$sha1" = "$actualsha1" || ! test -d "features" ; then
     rm -rf features
     rm -f *delim* output.geojson
-    unzip -q e79a7c68-2fe4-4225-a802-8379a8d6426c.zip || rm e79a7c68-2fe4-4225-a802-8379a8d6426c.zip
+    unzip -q delim-parcellaire-aoc-shp.zip || rm delim-parcellaire-aoc-shp.zip
     ogr2ogr -f GeoJSON -t_srs crs:84 output.geojson *.shp
     rm *.shp *.cpg *.prj *.shx *.dbf
     cat output.geojson | sed 's/{"type": "Feature"/\n{"type": "Feature"/g' | grep '"type": "Feature"' | sed 's/,$//' | split -l 1 --additional-suffix=".geojson" /dev/stdin "features/"
