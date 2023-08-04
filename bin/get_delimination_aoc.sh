@@ -13,6 +13,9 @@ if ! test -f e79a7c68-2fe4-4225-a802-8379a8d6426c.zip ; then
     touch -d 1970-01-01 e79a7c68-2fe4-4225-a802-8379a8d6426c.zip
 fi
 md5sum=$(md5sum e79a7c68-2fe4-4225-a802-8379a8d6426c.zip)
+#################################
+# Données de https://www.data.gouv.fr/fr/datasets/delimitation-parcellaire-des-aoc-viticoles-de-linao/
+#################################
 curl -s -L https://www.data.gouv.fr/fr/datasets/r/e79a7c68-2fe4-4225-a802-8379a8d6426c -o e79a7c68-2fe4-4225-a802-8379a8d6426c.zip -z e79a7c68-2fe4-4225-a802-8379a8d6426c.zip
 if ! test "$md5sum" = "$(md5sum e79a7c68-2fe4-4225-a802-8379a8d6426c.zip)" || ! test -d "features" ; then
     rm -rf features
