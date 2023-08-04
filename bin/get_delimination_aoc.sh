@@ -31,9 +31,25 @@ if ! test "$sha1" = "$actualsha1" || ! test -d "features" ; then
     cat output.geojson | sed 's/{"type": "Feature"/\n{"type": "Feature"/g' | grep '"type": "Feature"' | sed 's/,$//' | split -l 1 --additional-suffix=".geojson" /dev/stdin "features/"
     rm output.geojson
 fi
-cd ..
+sed -i 's/insee": ["0-9A-]*/insee": "49345"/' $( grep -l 'insee": "49' $( rgrep -l "BELLEVIGNE-EN-LAYON" features/ )  )
+sed -i 's/insee": ["0-9A-]*/insee": "49060"/' $( grep -l 'insee": "49' $( rgrep -l "BELLEVIGNE-LES-CHATEAUX" features/ )  )
+sed -i 's/insee": ["0-9A-]*/insee": "49029"/' $( grep -l 'insee": "49' $( rgrep -l "BLAISON-SAINT-SULPICE" features/ )  )
+sed -i 's/insee": ["0-9A-]*/insee": "49050"/' $( grep -l 'insee": "49' $( rgrep -l "BRISSAC LOIRE AUBANCE" features/ )  )
+sed -i 's/insee": ["0-9A-]*/insee": "49092"/' $( grep -l 'insee": "49' $( rgrep -l "CHEMILLE-EN-ANJOU" features/ )  )
+sed -i 's/insee": ["0-9A-]*/insee": "49125"/' $( grep -l 'insee": "49' $( rgrep -l "DOUE-EN-ANJOU" features/ )  )
+sed -i 's/insee": ["0-9A-]*/insee": "49261"/' $( grep -l 'insee": "49' $( rgrep -l "GENNES-VAL-DE-LOIRE" features/ )  )
+sed -i 's/insee": ["0-9A-]*/insee": "41059"/' $( grep -l 'insee": "41' $( rgrep -l "Le Controis-en-Sologne" features/ )  )
+sed -i 's/insee": ["0-9A-]*/insee": "49373"/' $( grep -l 'insee": "49' $( rgrep -l "LYS-HAUT-LAYON" features/ )  )
+sed -i 's/insee": ["0-9A-]*/insee": "49244"/' $( grep -l 'insee": "49' $( rgrep -l "MAUGES-SUR-LOIRE" features/ )  )
+sed -i 's/insee": ["0-9A-]*/insee": "49194"/' $( grep -l 'insee": "49' $( rgrep -l "MAZE-MILON" features/ )  )
+sed -i 's/insee": ["0-9A-]*/insee": "26001"/' $( grep -l 'insee": "26' $( rgrep -l "SOLAURE EN DIOIS" features/ )  )
+sed -i 's/insee": ["0-9A-]*/insee": "49086"/' $( grep -l 'insee": "49' $( rgrep -l "TERRANJOU" features/ )  )
+sed -i 's/insee": ["0-9A-]*/insee": "79329"/' $( grep -l 'insee": "79' $( rgrep -l "THOUARS" features/ )  )
+sed -i 's/insee": ["0-9A-]*/insee": "49292"/' $( grep -l 'insee": "49' $( rgrep -l "VAL-DU-LAYON" features/ )  )
+sed -i 's/insee": ["0-9A-]*/insee": "79063"/' $( grep -l 'insee": "79' $( rgrep -l "VAL EN VIGNES" features/ )  )
+sed -i 's/"insee": "ok"/"insee": "34162"/' features/znuy.geojson
 
-sed -i 's/"insee": "ok"/"insee": "34162"/' geo/features/znuy.geojson
+cd ..
 
 rgrep id_denom geo/features/ | sed 's/.*id_denom"://' | sed 's/,.*//' | sort -u | while read iddenom; do
     iddenum_print=$( printf '%05d' $iddenom )
