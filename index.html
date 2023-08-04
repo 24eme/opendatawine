@@ -1,46 +1,11 @@
 <html>
 <head>
-    <script type="text/javascript" src="web/js/lib/jquery/jquery-3.6.0.min.js"></script>
-    <script type="text/javascript" src="web/js/bootstrap.bundle.5.3.0-alpha3.min.js"></script>
-    <link rel="stylesheet" type="text/css" media="screen" href="web/css/bootstrap.5.3.0-alpha3.min.css"/>
-    <title>Open Data Wine : Accès simplifié aux délimitations viticoles</title>
 </head>
 <body>
-<div class="container">
 <h1>Open Data Wine</h1>
 <h2>Délimitations parcellaires des AOC françaises</h2>
-<br/><br/>
-<h4>Délimitations des appellations viticoles</h4>
 <p><a href="denominations.html">Liste des délimitations parcellaires des AOC viticoles</a></p>
-<h4>Communes viticoles</h4>
 <p><a href="communes.html">Liste des communes ayant une ou plusieurs délimitations viticoles</a></p>
-<h4>Recherche de parcelle viticole</h4>
-<p>Pour visialiser une parcelle viticole, saisissez son identifiant idu ci-dessous :</p>
-<form action="#">
-    <div class="row g-3 align-items-center">
-    <div class="col-auto">
-        <label for="idu" class="form-label">IDU :</label>
-    </div>
-    <div class="col-auto">
-        <input id="idu" name="idu" class="form-control"/>
-    </div>
-    <div class="col-auto">
-        <input type="submit" value="Retrouver"/>
-    </div>
-  </div>
-</form>
-<h4>Données brutes</h4>
 <p><a href="denominations.csv">Tableau de toutes les dénominations ayant une délimitation et leurs communes</a></p>
-</div>
-<script><!--
-
-$('form').submit(function() {
-        idu = $('#idu').val();
-        insee = idu.substring(0, 5);
-        document.location = "carte.html?insee="+insee+"#"+idu;
-        return false;
-})
-
---></script>
 </body>
 </html>
