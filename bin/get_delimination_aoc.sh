@@ -9,20 +9,22 @@ fi
 
 mkdir -p geo/features
 cd geo
-if ! test -f delim-parcellaire-aoc-shp.zip ; then
-    touch -d 1970-01-01 delim-parcellaire-aoc-shp.zip
+if ! test -f parcellaire-aoc-shp.zip ; then
+    touch -d 1970-01-01 parcellaire-aoc-shp.zip
 fi
-sha1=$(sha1sum delim-parcellaire-aoc-shp.zip)
+sha1=$(sha1sum parcellaire-aoc-shp.zip)
 #################################
 # Données de https://www.data.gouv.fr/fr/datasets/delimitation-parcellaire-des-aoc-viticoles-de-linao/
 #################################
-curl -s -L https://www.data.gouv.fr/fr/datasets/r/e79a7c68-2fe4-4225-a802-8379a8d6426c -o delim-parcellaire-aoc-shp.zip -z delim-parcellaire-aoc-shp.zip
-actualsha1=$(sha1sum delim-parcellaire-aoc-shp.zip)
-echo "SHA1 of downloaded delim-parcellaire-aoc-shp.zip : "$actualsha1
+if ! test $sha1 = $( curl -s https://www.data.gouv.fr/fr/datasets/delimitation-parcellaire-des-aoc-viticoles-de-linao/ | grep -A 30 parcellaire-aoc-shp.zip | grep -A 6 sha1 | tail -n 1 | awk '{print $1"  parcellaire-aoc-shp.zip"}' ) ; then
+curl -s -L $( curl -s https://www.data.gouv.fr/fr/datasets/delimitation-parcellaire-des-aoc-viticoles-de-linao/ | grep -A 30 parcellaire-aoc-shp.zip  | grep -B 1 Télécharger | grep href | awk -F '"' '{print $2}' ) -o parcellaire-aoc-shp.zip -z parcellaire-aoc-shp.zip
+fi
+actualsha1=$(sha1sum parcellaire-aoc-shp.zip)
+echo "SHA1 of downloaded file : "$actualsha1
 if ! test "$sha1" = "$actualsha1" || ! test -d "features" ; then
     rm -rf features
     rm -f *delim* output.geojson
-    unzip -q delim-parcellaire-aoc-shp.zip || rm delim-parcellaire-aoc-shp.zip
+    unzip -q parcellaire-aoc-shp.zip || rm parcellaire-aoc-shp.zip
     ogr2ogr -f GeoJSON -t_srs crs:84 output.geojson *.shp
     rm *.shp *.cpg *.prj *.shx *.dbf
     cat output.geojson | sed 's/{"type": "Feature"/\n{"type": "Feature"/g' | grep '"type": "Feature"' | sed 's/,$//' | split -l 1 --additional-suffix=".geojson" /dev/stdin "features/"
