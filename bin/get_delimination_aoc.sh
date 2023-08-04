@@ -100,7 +100,7 @@ ls -d delimitation_aoc/*/*/ | while read villedir ; do
 done
 
 echo "dt;type_prod;categorie;type_denom;type_ig;id_app;app;id_denom;denom;insee;nomcom;insee2011;nomcom2011;id_aire;crinao;grp_name1;grp_name2" > denominations.csv
-cat $(find delimitation_aoc/ -name denominations.json) | grep '^"' | sort -u | sed 's/.geojson//' | awk -F '"' '{print $4";"$2}' | while read line; do
+cat $(find delimitation_aoc/ -name delimitations.json) | grep '^"' | sort -u | sed 's/.geojson//' | awk -F '"' '{print $4";"$2}' | while read line; do
     denomid=$(echo $line| sed 's/;.*//')
     denomination=$(echo $line| sed 's/.*;//')
     find delimitation_aoc -name $denomid".geojson"  | while read file ; do
