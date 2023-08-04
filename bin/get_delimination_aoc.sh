@@ -62,11 +62,21 @@ rgrep id_denom geo/features/ | sed 's/.*id_denom"://' | sed 's/,.*//' | sort -u 
         dep=$(echo $insee | sed 's/...$//')
         mkdir -p "delimitation_aoc/"$dep"/"$insee
         file="delimitation_aoc/"$dep"/"$insee"/"$iddenum_print".geojson"
-        echo '{"type": "FeatureCollection","name": "aoc_geojson","features": [' > $file
-        cat $json | jq --compact-output . >> $file
-        echo ']}' >> $file
-        cat $file | tr -d '\n' > $file".tmp"
-        mv -f $file".tmp" $file
+        if ! test -f $file ; then
+            echo '{"type": "FeatureCollection","name": "aoc_geojson","features": [' > $file
+            cat $json | jq --compact-output . >> $file
+            echo ']}' >> $file
+            cat $file | tr -d '\n' > $file".tmp"
+            mv -f $file".tmp" $file
+        else
+            echo '{"type": "FeatureCollection","name": "aoc_geojson","features": [' > $file."tmp"
+            cat $file | jq --compact-output .features[0] >> $file".tmp"
+            echo "," >> $file".tmp"
+            cat $json | jq --compact-output . >> $file".tmp"
+            echo ']}' >> $file".tmp"
+            cat $file".tmp"  | tr -d '\n' > $file
+            rm -f $file".tmp"
+        fi
         echo >> $file
     done
 done
@@ -90,7 +100,7 @@ ls -d delimitation_aoc/*/*/ | while read villedir ; do
 done
 
 echo "dt;type_prod;categorie;type_denom;type_ig;id_app;app;id_denom;denom;insee;nomcom;insee2011;nomcom2011;id_aire;crinao;grp_name1;grp_name2" > denominations.csv
-cat $(find delimitation_aoc/ -name delimitations.json) | grep '^"' | sort -u | sed 's/.geojson//' | awk -F '"' '{print $4";"$2}' | while read line; do
+cat $(find delimitation_aoc/ -name denominations.json) | grep '^"' | sort -u | sed 's/.geojson//' | awk -F '"' '{print $4";"$2}' | while read line; do
     denomid=$(echo $line| sed 's/;.*//')
     denomination=$(echo $line| sed 's/.*;//')
     find delimitation_aoc -name $denomid".geojson"  | while read file ; do
@@ -99,26 +109,25 @@ cat $(find delimitation_aoc/ -name delimitations.json) | grep '^"' | sort -u | s
 done
 sed -i 's/Côtes de Bourg; Bourg et Bourgeais/Côtes de Bourg, Bourg et Bourgeais/' denominations.csv
 
-echo "<html><head><script type='text/javascript' src='web/js/bootstrap.bundle.5.3.0-alpha3.min.js'></script><link rel='stylesheet' type='text/css' media='screen' href='web/css/bootstrap.5.3.0-alpha3.min.css'/></head><body><div class='container'><h1>Dénominations INAO</h1><ul>" > denominations.html
+echo "<html><body><h1>Dénominations INAO</h1><ul>" > denominations.html
 tail -n +2 denominations.csv | sed 's/"//g' | awk -F ';' '{print $8";"$9}' | sort -u | awk -F ';' '{printf("<li><a href=\"denominations/%05d.html\">%s</a></li>\n", $1, $2);}' >> denominations.html
-echo "</ul></div></body></html>" >> denominations.html
+echo "</ul></body></html>" >> denominations.html
 
 tail -n +2 denominations.csv | awk -F ';' '{print $8";"$9}' | sed 's/"//g' | sort -u | awk -F ';' '{printf("%05d;%s\n", $1, $2);}' | sed 's/"//g' | while read line ; do
     denomid=$(echo $line | sed 's/;.*//')
     denomination=$(echo $line | sed 's/.*;//')
     denomorig=$(echo $denomid | sed 's/^0*//')
 
-    echo "<html><head><script type='text/javascript' src='../web/js/bootstrap.bundle.5.3.0-alpha3.min.js'></script><link rel='stylesheet' type='text/css' media='screen' href='../web/css/bootstrap.5.3.0-alpha3.min.css'/></head><body><div class='container'><h1>"$denomination"</h1><p>Liste des villes:</p><table>" > "denominations/"$denomid".html"
+    echo "<html><body><h1>"$denomination"</h1><p>Liste des villes:</p><table>" > "denominations/"$denomid".html"
     grep '";'$denomorig';"' denominations.csv | awk -F ';' '{if ($8 = '$denomorig') print $10";"$11;}' | sed 's/"//g' | awk -F ';' '{dep=substr($1,0,2); print "<tr class=\"ville\"><td>"dep"</td><td><a href=\"../carte.html?insee="$1"&denomid='$denomid'\">"$2"</a></td></tr>"}' >> "denominations/"$denomid".html"
-    echo "</table></div></body></html>" >> "denominations/"$denomid".html"
+    echo "</table></body></html>" >> "denominations/"$denomid".html"
     echo "denominations/"$denomid".html"
 
     echo -n "[" > "denominations/"$denomid".json"
-    grep '";'$denomorig';"' denominations.csv | awk -F ';' '{if ($8 = '$denomorig') print $10",";}' | sed 's/"//g' | tr -d '\n' >> "denominations/"$denomid".json"
+    grep '";'$denomorig';"' denominations.csv | awk -F ';' '{if ($8 = '$denomorig') print $10",";}' | tr -d '\n' >> "denominations/"$denomid".json"
     sed -i 's/,$/]/' "denominations/"$denomid".json"
 done
 
-echo "<html><head><script type='text/javascript' src='web/js/bootstrap.bundle.5.3.0-alpha3.min.js'></script><link rel='stylesheet' type='text/css' media='screen' href='web/css/bootstrap.5.3.0-alpha3.min.css'/></head><body><h1>Communes ayant des dénominations INAO</h1><ul>" > communes.html
+echo "<html><body><h1>Communes ayant des dénominations INAO</h1><ul>" > communes.html
 tail -n +2 denominations.csv | awk -F ';' '{print $10";"$11}' | sed 's/"//g' | sort -u | awk -F ';' '{ dep=substr($1,0, 2); print "<li><a href=\"carte.html?insee="$1"\">"$2" ("dep")</a></li>" }' >> communes.html
-echo "</ul></div></body></html>" >> communes.html
-
+echo "</ul></body></html>" >> communes.html
