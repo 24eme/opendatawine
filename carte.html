@@ -88,7 +88,7 @@ var map;
 	  for(c in communes) {
 		let commune = communes[c];
 		$('#loadermessage').html("Récupération des dénominations de "+commune);
-		let url = base_opendata +'/delimitation_aoc/'+dep+'/'+commune+'/denominations.json';
+		let url = base_opendata +'/delimitation_aoc/'+dep+'/'+commune+'/delimitations.json';
 		let denoms = await fetch(url);
 		let json = await denoms.json();
 		let base = denoms.url.replace(/[^\/]+$/, '')
