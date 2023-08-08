@@ -53,6 +53,7 @@ cd ..
 
 rgrep id_denom geo/features/ | sed 's/.*id_denom"://' | sed 's/,.*//' | sort -u | while read iddenom; do
     iddenum_print=$( printf '%05d' $iddenom )
+    find delimitation_aoc/ -name $iddenum_print".geojson" -delete
     rgrep -l '"id_denom": *'$iddenom',' geo/features/ | while read json ; do
         insee=$(cat $json  | sed 's/.*"insee": *"//' | sed 's/".*//' )
         if test "$insee" = '{ '; then
@@ -69,9 +70,8 @@ rgrep id_denom geo/features/ | sed 's/.*id_denom"://' | sed 's/,.*//' | sort -u 
             cat $file | tr -d '\n' > $file".tmp"
             mv -f $file".tmp" $file
         else
-            echo '{"type": "FeatureCollection","name": "aoc_geojson","features": [' > $file."tmp"
-            cat $file | jq --compact-output .features[0] >> $file".tmp"
-            echo "," >> $file".tmp"
+            echo '{"type": "FeatureCollection","name": "aoc_geojson","features": ' > $file."tmp"
+            cat $file | jq --compact-output .features | sed 's/]$/,/' >> $file".tmp"
             cat $json | jq --compact-output . >> $file".tmp"
             echo ']}' >> $file".tmp"
             cat $file".tmp"  | tr -d '\n' > $file
