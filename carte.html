@@ -57,169 +57,198 @@ var communes = searchParams.get('insee').split(',');
 var dep = communes[0].substring(0, 2);
 var denomid = searchParams.get('denomid');
 var base_opendata = 'https://data.opendatawine.fr';
-var my_features = [];
+var parcelle_layers = {};
 var map;
 (function() {
 	$('#loadermessage').html("Préparation de la carte");
 	map = L.map('map', {center:[47.1113,2.6038],zoom:7});
 	L.tileLayer('https://wxs.ign.fr/{ignApiKey}/geoportail/wmts?'+
-		        '&REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&TILEMATRIXSET=PM'+
-		        '&LAYER={ignLayer}&STYLE={style}&FORMAT={format}'+
-		        '&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}',
-		        {
-		          ignApiKey: 'pratique',
-		          ignLayer: 'ORTHOIMAGERY.ORTHOPHOTOS',
-		          style: 'normal',
-		          format: 'image/jpeg',
-		          service: 'WMTS',
-		    maxZoom: 19,
-		    attribution: 'Map data &copy;' +
-		        '<a href="https://www.24eme.fr/">24eme Société coopérative</a>, ' +
-		        '<a href="https://cadastre.data.gouv.fr/">Cadastre</a>, ' +
-		        'Imagery © <a href="https://www.ign.fr/">IGN</a>',
-		    id: 'mapbox.light'
+	'&REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&TILEMATRIXSET=PM'+
+	'&LAYER={ignLayer}&STYLE={style}&FORMAT={format}'+
+	'&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}',
+	{
+		ignApiKey: 'pratique',
+		ignLayer: 'ORTHOIMAGERY.ORTHOPHOTOS',
+		style: 'normal',
+		format: 'image/jpeg',
+		service: 'WMTS',
+		maxZoom: 19,
+		attribution: 'Map data &copy;' +
+		'<a href="https://www.24eme.fr/">24eme Société coopérative</a>, ' +
+		'<a href="https://cadastre.data.gouv.fr/">Cadastre</a>, ' +
+		'Imagery © <a href="https://www.ign.fr/">IGN</a>',
+		id: 'mapbox.light'
 	}).addTo(map);
 
 	var layers = {};
 	var downloads = {};
+	var noms_cadastre = [];
 	async function loadFeatures() {
-	  let bounds = null;
-	  let noms_communes = [];
-	  for(c in communes) {
-		let commune = communes[c];
-		$('#loadermessage').html("Récupération des dénominations de "+commune);
-		let url = base_opendata +'/delimitation_aoc/'+dep+'/'+commune+'/delimitations.json';
-		let denoms = await fetch(url);
-		let json = await denoms.json();
-		let base = denoms.url.replace(/[^\/]+$/, '')
-		let i = 0;
-		let geojson;
-		let mycommune;
-		for(nom in json) {
-			$('#loadermessage').html("Récupération des délimitations "+nom+" dans "+commune);
-			let geojson_content = await fetch(base+json[nom]);
-			let current_denomid = json[nom].replace(".geojson","");
-			htmlname = '<span style="display:inline-block;width:25px;opacity:0.75;background-color:'+colors[i]+'"> &nbsp; </span> '+nom;
-			geojson = await geojson_content.json();
-			mycommune = geojson.features[0].properties.nomcom;
-			downloads["Délimitation de "+nom+" - "+mycommune] = geojson_content.url;
-			layers[htmlname] = L.geoJSON(geojson,{style:{fillColor:colors[i],weight:0,opacity:0.75,dashArray:'5',color:'black',fillOpacity:0.4}});
-			if (!denomid || denomid == current_denomid) {
-				layers[htmlname].addTo(map);
-				if (!bounds) {
-					bounds = layers[htmlname].getBounds();
-				}else{
-					bounds = bounds.extend(layers[htmlname].getBounds());
+		let bounds = null;
+		let noms_communes = [];
+		for(c in communes) {
+			let commune = communes[c];
+			$('#loadermessage').html("Récupération des dénominations de "+commune);
+			const url = base_opendata +'/delimitation_aoc/'+dep+'/'+commune+'/delimitations.json';
+			const denoms = await fetch(url);
+			const json = await denoms.json();
+			const base = denoms.url.replace(/[^\/]+$/, '')
+			let i = 0;
+			let mycommune;
+			for(nom in json) {
+				$('#loadermessage').html("Récupération des délimitations "+nom+" dans "+commune);
+				const geojson_content = await fetch(base+json[nom]);
+				const htmlname = '<span style="display:inline-block;width:25px;opacity:0.75;background-color:'+colors[i]+'"> &nbsp; </span> '+nom;
+				const geojson = await geojson_content.json();
+				mycommune = geojson.features[0].properties.nomcom;
+				downloads["Délimitation de "+nom+" - "+mycommune] = geojson_content.url;
+				layers[htmlname] = L.geoJSON(geojson,{style:{fillColor:colors[i],weight:0,opacity:0.75,dashArray:'5',color:'black',fillOpacity:0.4}});
+				if (denomid) {
+					if (denomid == geojson.features[0].properties.id_denom) {
+						bounds = layers[htmlname].getBounds();
+						layers[htmlname].addTo(map);
+					}
+				} else {
+					layers[htmlname].addTo(map);
+					if (!bounds) {
+						bounds = layers[htmlname].getBounds();
+					}else{
+						bounds = bounds.extend(layers[htmlname].getBounds());
+					}
 				}
+				$('#loadermessage').html("Récupération des délimitations "+nom+" dans "+commune+" terminée");
+				i++;
 			}
-			$('#loadermessage').html("Récupération des délimitations "+nom+" dans "+commune+" terminée");
-			i++;
+			noms_communes.push(mycommune);
+			const urlCadastre = base+'/cadastre-parcelles.json';
+			$('#loadermessage').html("Récupération du cadastre de "+commune);
+			const cadastreContent = await fetch(urlCadastre);
+			downloads["Parcelles cadastrales - "+mycommune] = cadastreContent.url;
+			const parcelle_nom = '<span style="display:inline-block;width:23px;border:1px solid black;opacity:0.75;"> &nbsp; </span> Parcelles cadastrales - '+mycommune;
+			$('#loadermessage').html("Récupération du cadastre de "+commune+" : chargement des données géographique<blink>...</blink> (peut être un peu long)");
+			layers[parcelle_nom] = L.geoJSON(await cadastreContent.json(),{style:{weight:1,opacity:0.75,color:'black'}});
+			$('#loadermessage').html("Récupération du cadastre de "+commune+" : ajout des parcelles dans la carte");
+			layers[parcelle_nom].addTo(map);
+			$('#loadermessage').html("Récupération du cadastre de "+commune+" terminée");
+			noms_cadastre.push(parcelle_nom);
 		}
-		noms_communes.push(mycommune);
-		url = base+'/cadastre-parcelles.json';
-		$('#loadermessage').html("Récupération du cadastre de "+commune);
-		let cadastreaccess = await fetch(url);
-		downloads["Parcelles cadastrales - "+mycommune] = cadastreaccess.url;
-		parcelle_nom = '<span style="display:inline-block;width:23px;border:1px solid black;opacity:0.75;"> &nbsp; </span> Parcelles cadastrales - '+mycommune;
-		$('#loadermessage').html("Récupération du cadastre de "+commune+" : chargement des données géographique<blink>...</blink> (peut être un peu long)");
-		layers[parcelle_nom] = L.geoJSON(await cadastreaccess.json(),{style:{weight:1,opacity:0.75,color:'black'}});
-		$('#loadermessage').html("Récupération du cadastre de "+commune+" : ajout des parcelles dans la carte");
-		layers[parcelle_nom].addTo(map);
-		$('#loadermessage').html("Récupération du cadastre de "+commune+" : calcul du listing des parcellaires");
-		displayParcellesList(layers[parcelle_nom].getLayers());
-		$('#loadermessage').html("Récupération du cadastre de "+commune+" terminée");
-	  }
-	  $('#commune_nom').html(noms_communes.join(', '));
-	  setTimeout( () => {$('#loadermessage').html("");}, 500);
+		$('#commune_nom').html(noms_communes.join(', '));
 
-	  map.fitBounds(bounds);
+		map.fitBounds(bounds);
 
-	  L.control.layers({},layers,{position:'bottomleft',collapsed:false}).addTo(map);
-	  let html_download = '<ul>';
-	  for(id in downloads){
-	  	html_download += '<li><a href="'+downloads[id]+'">'+id+'</a></li>';
-	  }
-	  html_download += "</ul>";
-	  $('#download_list').html(html_download);
-	}
-	loadFeatures();
+		$('#loadermessage').html("Création des liens vers les données Open Data");
+		L.control.layers({},layers,{position:'bottomleft',collapsed:false}).addTo(map);
+		let html_download = '<ul>';
+		for(id in downloads){
+			html_download += '<li><a href="'+downloads[id]+'">'+id+'</a></li>';
+		}
+		html_download += "</ul>";
+		$('#download_list').html(html_download);
 
-	function displayParcellesList(features) {
-		features.sort(function (feature1, feature2) { return feature1.feature.properties['id'] > feature2.feature.properties['id'] }).forEach(function(feature) {
-			properties = feature.feature.properties;
-			parcelle_id = properties["id"];
-			content = '<h3>'+properties2title(properties)+'</h3>';
-			content += '<ul>';
-			contenance = '';
-			for(var i in properties) {
-				if (i == 'contenance') {
-					properties[i] = parseFloat(properties['contenance'] / 1000).toFixed(4)+' ha';
-				}else if (i == 'id') {
-					content += '<li>'+i+' : <a href="#'+properties[i]+'">'+properties[i]+'</a></li>';
-					continue;
-				}
-				content += "<li>"+i+" : "+properties[i]+"</li>";
-			}
-			content += '</ul>';
-			feature.bindPopup(content);
-			my_features[parcelle_id] = feature;
-			$('#list_les_parcelles').append(properties2li(properties));
-
-			map.addLayer( new L.Marker(
-		                    feature.getBounds().getCenter(),
-		                    {
-		                        title: "MyLocation",
-		                        icon: L.divIcon( iconOptions = {
-		                                iconSize  : [15, 15],
-		                                className : 'parcellelabel',
-		                                html: '<b>' +  properties2title(properties) + '</b>'
-		                        })
-		                    }
-		                )
-		            );
-			$('.parcellelabel').hide();
+		$('#loadermessage').html("Affichage de toutes les parcelles et leur contenances");
+		noms_cadastre.forEach(function(parcelle_nom) {
+			layers[parcelle_nom].eachLayer(layer => {
+				layer.feature.properties['human_contenance'] = parseFloat(layer.feature.properties['contenance'] / 1000).toFixed(4)+' ha';
+				$('#list_les_parcelles').append(properties2row(layer.feature.properties));
+				parcelle_layers[layer.feature.properties['id']] = layer;
+			});
 		});
-		$('.parcellelabel').hide();
+		$('#sidebar').show();
 
-		console.log(window.location.hash);
+
+		console.log(window.location.hash)
 		if (window.location.hash) {
 			parcelles = window.location.hash.substring(1).split(',').filter((item, i, ar) => ar.indexOf(item) === i);;
 			selectParcelles(parcelles);
 		}
-		$('#sidebar').show();
-		map.on('zoomend', function() {
-    		if (map.getZoom() > 16){
-        		$('.parcellelabel').show();
-    		} else {
-        		$('.parcellelabel').hide();
-    		}
+
+		setTimeout( () => {$('#loadermessage').html("");}, 500);
+
+		map.on('click', function(e) {
+			for(uid in parcelle_layers) {
+				if (parcelle_layers[uid].getBounds().contains(e.latlng)) {
+					openParcelle(uid);
+				}
+			}
 		});
+		map.on('zoomend', function() {
+			if (map.getZoom() > 16){
+				$('.parcellelabel').show();
+			} else {
+				$('.parcellelabel').hide();
+			}
+		});
+
 	}
+
+	loadFeatures();
 })();
+
 var current_parcelles = [];
 function selectParcelles(uid_parcelles) {
 	current_parcelles.forEach(function(cuid) {
-		if (my_features[cuid]) {
-			my_features[cuid].setStyle({'color': 'black', 'weight': '1'});
+		if (parcelle_layers[cuid]) {
+			parcelle_layers[cuid].setStyle({'color': 'black', 'weight': '1'});
 		}
 	});
 	current_parcelles = parcelles;
+	let selected_bound = null;
 	current_parcelles.forEach(function(cuid) {
-		if (my_features[cuid]) {
-			my_features[cuid].setStyle({'color': 'red', 'fillColor': 'black', 'weight': '3'});
-			$('#list_vos_parcelles').append(properties2li(my_features[cuid].feature.properties, false));
+		if (parcelle_layers[cuid]) {
+			parcelle_layers[cuid].setStyle({'color': 'red', 'fillColor': 'black', 'weight': '3'});
+			$('#list_vos_parcelles').append(properties2row(parcelle_layers[cuid].feature.properties, false));
+			markParcelle(cuid);
+			if (!selected_bound) {
+				selected_bound = parcelle_layers[cuid].getBounds();
+			}else{
+				selected_bound = selected_bound.extend(parcelle_layers[cuid].getBounds())
+			}
 		}else{
 			$('#list_vos_parcelles').append('<li>'+cuid+' non trouvée</li>');
 		}
 	});
 	$('#vos_parcelles').show();
+	map.fitBounds(selected_bound);
 }
-function openParcelle(uid) {
-	if (!uid || !my_features[uid]) {
+
+function markParcelle(uid) {
+	if (!uid || !parcelle_layers[uid]) {
 		return;
 	}
-	map.fitBounds(my_features[uid].getBounds());
-	my_features[uid].openPopup();
+	map.addLayer( new L.Marker(
+		parcelle_layers[uid].getBounds().getCenter(),
+		{
+			title: "MyLocation",
+			icon: L.divIcon( iconOptions = { iconSize  : [15, 15], className : 'parcellelabel', html: '<b>' +  properties2title(parcelle_layers[uid].feature.properties) + '</b>' })
+		}
+	));
+}
+
+function openParcelle(uid) {
+	if (!uid || !parcelle_layers[uid]) {
+		return;
+	}
+	markParcelle(uid);
+	properties = parcelle_layers[uid].feature.properties;
+	parcelle_id = properties["id"];
+	content = '<h3>'+properties2title(properties)+'</h3>';
+	content += '<ul>';
+	contenance = '';
+	for(var i in properties) {
+		if (i == 'contenance') {
+			properties[i] = parseFloat(properties['contenance'] / 1000).toFixed(4)+' ha';
+		}else if (i == 'id') {
+			content += '<li>'+i+' : <a href="#'+properties[i]+'">'+properties[i]+'</a></li>';
+			continue;
+		}
+		content += "<li>"+i+" : "+properties[i]+"</li>";
+	}
+	content += '</ul>';
+	parcelle_layers[uid].bindPopup(content);
+	parcelle_layers[uid].openPopup();
+
+	current_parcelles.push(uid);
+	map.fitBounds(parcelle_layers[uid].getBounds());
 	return false;
 }
 function properties2title(properties) {
@@ -231,12 +260,12 @@ function properties2title(properties) {
 	return parcelle_title;
 
 }
-function properties2li(properties, with_id = true) {
-	html = '<li';
+function properties2row(properties, with_id = true) {
+	html = '<li ';
 	if (with_id) {
 		html += ' id="'+properties['id']+'"';
 	}
-	html += ' data-uid="'+properties['id']+'" class="parcelle"><span style="min-width: 50px;display:inline-block;"><a href="#'+properties['id']+'" onclick="openParcelle($(this).parent().parent()[0].dataset.uid); return false;">'+properties2title(properties)+'</a> : </span><span class="text-right" style="width: 100px;display: inline-block;text-align: right;">'+properties['contenance']+'</span></li>';
+	html += ' data-uid="'+properties['id']+'" class="parcelle"><span style="min-width: 100px;display:inline-block;"><a href="#'+properties['id']+'" onclick="openParcelle($(this).parent().parent()[0].dataset.uid); return false;">'+properties2title(properties)+'</a> : </span><span class="text-right" style="width: 100px;display: inline-block;text-align: right;">'+properties['human_contenance']+'</span></li>';
 	return html;
 }
 </script>
