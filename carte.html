@@ -208,7 +208,9 @@ function selectParcelles(uid_parcelles) {
 		}
 	});
 	$('#vos_parcelles').show();
-	map.fitBounds(selected_bound);
+	if (selected_bound) {
+		map.fitBounds(selected_bound);
+	}
 }
 
 function markParcelle(uid) {
