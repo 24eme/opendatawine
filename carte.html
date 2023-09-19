@@ -146,12 +146,18 @@ var map;
 		$('#download_list').html(html_download);
 
 		$('#loadermessage').html("Affichage de toutes les parcelles et leur contenances");
+		var parcelles_id = [];
 		noms_cadastre.forEach(function(parcelle_nom) {
 			layers[parcelle_nom].eachLayer(layer => {
-				layer.feature.properties['human_contenance'] = parseFloat(layer.feature.properties['contenance'] / 1000).toFixed(4)+' ha';
-				$('#list_les_parcelles').append(properties2row(layer.feature.properties));
+				parcelles_id.push(layer.feature.properties['id']);
 				parcelle_layers[layer.feature.properties['id']] = layer;
 			});
+		});
+		parcelles_id.sort();
+		parcelles_id.forEach(function(pid) {
+			layer = parcelle_layers[pid]
+			layer.feature.properties['human_contenance'] = parseFloat(layer.feature.properties['contenance'] / 1000).toFixed(4)+' ha';
+			$('#list_les_parcelles').append(properties2row(layer.feature.properties));
 		});
 		$('#sidebar').show();
 
