@@ -1,55 +1,55 @@
 <html class="no-js" lang="fr">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta http-equiv="X-Ua-Compatible" content="IE=edge" />
-<meta name="charset" content="utf-8" />
-<meta name="content-language" content="fr-FR" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Carte des dénominations de la commune</title>
-<script type="text/javascript" src="web/js/lib/leaflet/leaflet.js"></script>
-<script type="text/javascript" src="web/js/lib/jquery/jquery-3.6.0.min.js"></script>
-<script type="text/javascript" src="web/js/colors.js"></script>
-<script type="text/javascript" src="web/js/bootstrap.bundle.5.3.0-alpha3.min.js"></script>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="X-Ua-Compatible" content="IE=edge" />
+	<meta name="charset" content="utf-8" />
+	<meta name="content-language" content="fr-FR" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Carte des dénominations de la commune</title>
+	<script type="text/javascript" src="web/js/lib/leaflet/leaflet.js"></script>
+	<script type="text/javascript" src="web/js/lib/jquery/jquery-3.6.0.min.js"></script>
+	<script type="text/javascript" src="web/js/colors.js"></script>
+	<script type="text/javascript" src="web/js/bootstrap.bundle.5.3.0-alpha3.min.js"></script>
 
-<link rel="stylesheet" type="text/css" media="screen" href="web/css/bootstrap.5.3.0-alpha3.min.css"/>
-<link rel="stylesheet" type="text/css" media="screen" href="web/js/lib/leaflet/leaflet.css"/>
-<link rel="stylesheet" type="text/css" media="screen" href="web/js/lib/leaflet/marker.css"/>
+	<link rel="stylesheet" type="text/css" media="screen" href="web/css/bootstrap.5.3.0-alpha3.min.css"/>
+	<link rel="stylesheet" type="text/css" media="screen" href="web/js/lib/leaflet/leaflet.css"/>
+	<link rel="stylesheet" type="text/css" media="screen" href="web/js/lib/leaflet/marker.css"/>
 </head>
 <body role="document">
-<div class="container">
-<h1>Dénomination AOC sur la commune <span id="commune_nom"></span></h1>
-<div class="row">
-<div id="loader">
-	<pre id="loadermessage"></pre>
-</div>
-<div id="pagecontainer" class="col-8">
-	<h2>La carte</h2>
-<div id="map" style="height:800px; width:100%; margin-bottom: 20px;">
-</div>
-</div>
-<div class="col" id="sidebar" style="display: none;">
-	<div id="vos_parcelles" style="display: none;">
-	<h2>Parcelles sélectionnées</h2>
-	<ul id="list_vos_parcelles" style="max-height: 200px; overflow-x: scroll">
-	</ul>
+	<div class="container">
+		<h1>Dénomination AOC sur la commune <span id="commune_nom"></span></h1>
+		<div class="row">
+			<div id="loader">
+				<pre id="loadermessage"></pre>
+			</div>
+			<div id="pagecontainer" class="col-8">
+				<h2>La carte</h2>
+				<div id="map" style="height:800px; width:100%; margin-bottom: 20px;">
+				</div>
+			</div>
+			<div class="col" id="sidebar" style="display: none;">
+				<div id="vos_parcelles" style="display: none;">
+					<h2>Parcelles sélectionnées</h2>
+					<ul id="list_vos_parcelles" style="max-height: 200px; overflow-x: scroll">
+					</ul>
+				</div>
+				<div id="les_parcelles">
+					<h2>Parcelles de la commune</h2>
+					<ul id="list_les_parcelles" style="max-height: 600px; overflow-x: scroll">
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div>
+			<h2>Téléchargement</h2>
+			<div id="download_list">
+			</div>
+		</div>
 	</div>
-	<div id="les_parcelles">
-	<h2>Parcelles de la commune</h2>
-	<ul id="list_les_parcelles" style="max-height: 600px; overflow-x: scroll">
-	</ul>
-	</div>
-</div>
-</div>
-<div>
-	<h2>Téléchargement</h2>
-	<div id="download_list">
-	</div>
-</div>
-</div>
-<style>
-.sectionlabel, .parcellelabel {
-	text-shadow: 1px 1px #fff,-1px 1px #fff,1px -1px #fff,-1px -1px #fff,1px 1px 5px #555;
-}
+	<style>
+	.sectionlabel, .parcellelabel {
+		text-shadow: 1px 1px #fff,-1px 1px #fff,1px -1px #fff,-1px -1px #fff,1px 1px 5px #555;
+	}
 </style>
 <script type="text/javascript">
 let searchParams = new URLSearchParams(window.location.search)
