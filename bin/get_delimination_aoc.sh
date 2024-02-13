@@ -16,7 +16,7 @@ sha1=$(sha1sum parcellaire-aoc-shp.zip)
 #################################
 # Données de https://www.data.gouv.fr/fr/datasets/delimitation-parcellaire-des-aoc-viticoles-de-linao/
 #################################
-if ! test $sha1 = $( curl -s https://www.data.gouv.fr/fr/datasets/delimitation-parcellaire-des-aoc-viticoles-de-linao/ | grep -A 30 parcellaire-aoc-shp.zip | grep -A 6 sha1 | tail -n 1 | awk '{print $1"  parcellaire-aoc-shp.zip"}' ) ; then
+if ! test "$sha1" = "$( curl -s https://www.data.gouv.fr/fr/datasets/delimitation-parcellaire-des-aoc-viticoles-de-linao/ | grep -A 30 parcellaire-aoc-shp.zip | grep -A 6 sha1 | tail -n 1 | awk '{print $1"  parcellaire-aoc-shp.zip"}' )" ; then
 curl -s -L $( curl -s https://www.data.gouv.fr/fr/datasets/delimitation-parcellaire-des-aoc-viticoles-de-linao/ | grep -A 30 parcellaire-aoc-shp.zip  | grep -B 1 Télécharger | grep href | awk -F '"' '{print $2}' ) -o parcellaire-aoc-shp.zip -z parcellaire-aoc-shp.zip
 fi
 actualsha1=$(sha1sum parcellaire-aoc-shp.zip)
@@ -53,6 +53,7 @@ cd ..
 
 rgrep id_denom geo/features/ | sed 's/.*id_denom"://' | sed 's/,.*//' | sort -u | while read iddenom; do
     iddenum_print=$( printf '%05d' $iddenom )
+    find delimitation_aoc/ -name $iddenum_print".geojson" -delete
     rgrep -l '"id_denom": *'$iddenom',' geo/features/ | while read json ; do
         insee=$(cat $json  | sed 's/.*"insee": *"//' | sed 's/".*//' )
         if test "$insee" = '{ '; then
@@ -69,9 +70,8 @@ rgrep id_denom geo/features/ | sed 's/.*id_denom"://' | sed 's/,.*//' | sort -u 
             cat $file | tr -d '\n' > $file".tmp"
             mv -f $file".tmp" $file
         else
-            echo '{"type": "FeatureCollection","name": "aoc_geojson","features": [' > $file."tmp"
-            cat $file | jq --compact-output .features[0] >> $file".tmp"
-            echo "," >> $file".tmp"
+            echo '{"type": "FeatureCollection","name": "aoc_geojson","features": ' > $file."tmp"
+            cat $file | jq --compact-output .features | sed 's/]$/,/' >> $file".tmp"
             cat $json | jq --compact-output . >> $file".tmp"
             echo ']}' >> $file".tmp"
             cat $file".tmp"  | tr -d '\n' > $file
