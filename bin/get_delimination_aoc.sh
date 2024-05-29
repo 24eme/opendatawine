@@ -118,13 +118,13 @@ tail -n +2 denominations.csv | awk -F ';' '{print $8";"$9}' | sed 's/"//g' | sor
     denomorig=$(echo $denomid | sed 's/^0*//')
 
     echo "<html><head><script type='text/javascript' src='../web/js/bootstrap.bundle.5.3.0-alpha3.min.js'></script><link rel='stylesheet' type='text/css' media='screen' href='../web/css/bootstrap.5.3.0-alpha3.min.css'/><title>Les communes de la dénomination "$denomination"</title></head><body><div class='container'><h1>"$denomination"</h1><p>Liste des villes:</p><table>" > "denominations/"$denomid".html"
-    grep '";'$denomorig';"' denominations.csv | awk -F ';' '{if ($8 = '$denomorig') print $10";"$11;}' | sed 's/"//g' | awk -F ';' '{dep=substr($1,0,2); print "<tr class=\"ville\"><td>"dep"</td><td><a href=\"../carte.html?insee="$1"&denomid='$denomid'\">"$2"</a></td></tr>"}' >> "denominations/"$denomid".html"
+    grep '";'$denomorig';"' denominations.csv | awk -F ';' '{if ($8 == '$denomorig') print $10";"$11;}' | sed 's/"//g' | awk -F ';' '{dep=substr($1,0,2); print "<tr class=\"ville\"><td>"dep"</td><td><a href=\"../carte.html?insee="$1"&denomid='$denomid'\">"$2"</a></td></tr>"}' >> "denominations/"$denomid".html"
     echo "</table></div></body></html>" >> "denominations/"$denomid".html"
     echo "denominations/"$denomid".html"
 
-    echo -n "[" > "denominations/"$denomid".json"
-    grep '";'$denomorig';"' denominations.csv | awk -F ';' '{if ($8 = '$denomorig') print $10",";}' | sed 's/"//g' | tr -d '\n' >> "denominations/"$denomid".json"
-    sed -i 's/,$/]/' "denominations/"$denomid".json"
+    echo -n "{" > "denominations/"$denomid".json"
+    grep '";'$denomorig';"' denominations.csv | awk -F ';' '{if ($8 == '$denomorig') print "\""$10"\":\""$11"\",";}' | sed 's/""/"/g' | tr -d '\n' >> "denominations/"$denomid".json"
+    sed -i 's/,$/}/' "denominations/"$denomid".json"
 done
 
 echo "<html><head><script type='text/javascript' src='web/js/bootstrap.bundle.5.3.0-alpha3.min.js'></script><link rel='stylesheet' type='text/css' media='screen' href='web/css/bootstrap.5.3.0-alpha3.min.css'/><title>Les communes viticoles</title></head><body><h1>Communes ayant des dénominations INAO</h1><ul>" > communes.html
