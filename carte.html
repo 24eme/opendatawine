@@ -62,7 +62,7 @@ var map;
 (function() {
 	$('#loadermessage').html("Préparation de la carte");
 	map = L.map('map', {center:[47.1113,2.6038],zoom:7});
-	L.tileLayer('https://wxs.ign.fr/{ignApiKey}/geoportail/wmts?'+
+        L.tileLayer('https://wmts.geopf.fr/wmts?'+
 	'&REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&TILEMATRIXSET=PM'+
 	'&LAYER={ignLayer}&STYLE={style}&FORMAT={format}'+
 	'&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}',
