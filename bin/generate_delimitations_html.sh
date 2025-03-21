@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd $(dirname $0)/..
+
 ls -d delimitation_aoc/*/*/ | while read villedir ; do
     commune=$(echo $villedir | awk -F '/' '{print $3}')
     departement=$(echo $villedir | awk -F '/' '{print $2}')
@@ -23,9 +25,14 @@ cat $(find delimitation_aoc/ -name delimitations.json) | grep '^"' | sort -u | s
     denomid=$(echo $line| sed 's/;.*//')
     denomination=$(echo $line| sed 's/.*;//')
     find delimitation_aoc -name $denomid".geojson"  | while read file ; do
-    cat $file | jq -c .features[0].properties | sed 's/\\"//g' | sed 's/;/ /g' | jq  -c '[.dt,.type_prod,.categorie,.type_denom,.type_ig,.id_app,.app,.id_denom,.denom,.insee,.nomcom,.insee2011,.nomcom2011,.id_aire,.crinao,.grp_name1,.grp_name2]' | sed 's/]$//' | awk -F '"' 'BEGIN{OFS = "\"" ;} { gsub(",", " -@- ", $4); gsub(",", " -@- ", $6); gsub(",", " -@- ", $8); gsub(",", " -@- ", $10); gsub(",", " -@- ", $22); gsub(",", " -@- ", $24); gsub(",", " -@- ", $26); gsub(",", "|", $14); gsub(",", "|", $16); gsub(",", "|", $18); gsub(",", "|", $20); print $0}' | sed 's/,null/,/g' | sed 's/^\[//' | sed 's/"*$//' | sed 's/,/;/g' | sed 's/ -@- /,/g' >> denominations.csv
+    insee=$(echo $file | awk -F '/' '{print $3}')
+    cat $file | jq -c .features[0].properties | sed 's/\\"//g' | sed 's/;/ /g' | jq  -c '[.dt,.type_prod,.categorie,.type_denom,.type_ig,.id_app,.app,.id_denom,.denom,.insee,.nomcom,.insee2011,.nomcom2011,.id_aire,.crinao,.grp_name1,.grp_name2]' | sed 's/,null,/,"",/g' | sed 's/]$//' | awk -F '"' 'BEGIN{OFS = "\"" ;} { gsub(",", " -@- ", $4); gsub(",", " -@- ", $6); gsub(",", " -@- ", $8); gsub(",", " -@- ", $10); gsub(",", " -@- ", $22); gsub(",", " -@- ", $24); gsub(",", " -@- ", $26); gsub(",", "|", $14); gsub(",", "|", $16); gsub(",", "|", $18); gsub(",", "|", $20); if(!$16){$16="'$insee'"}; print $0}' | sed 's/,null/,/g' | sed 's/^\[//' | sed 's/"*$//' | sed 's/,/;/g' | sed 's/ -@- /,/g' >> denominations.csv
     done
 done
+
+head -n 1 denominations.csv > denominations.sorted.csv
+tail -n +2 denominations.csv | sort -u >> denominations.sorted.csv
+mv denominations.sorted.csv denominations.csv
 
 echo "<html><head><script type='text/javascript' src='web/js/bootstrap.bundle.5.3.0-alpha3.min.js'></script><link rel='stylesheet' type='text/css' media='screen' href='web/css/bootstrap.5.3.0-alpha3.min.css'/><title>Les délimitations INAO</title></head><body><div class='container'><h1>Dénominations INAO</h1><ul>" > denominations.html
 tail -n +2 denominations.csv | sed 's/"//g' | awk -F ';' '{print $8";"$9}' | sort -u | awk -F ';' '{printf("<li><a href=\"denominations/%05d.html\">%s</a></li>\n", $1, $2);}' >> denominations.html
