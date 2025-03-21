@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cd $(dirname $0)/
+cd $(dirname $0)/..
 
-bash get_delimination_aoc.sh
-bash get_delimination_global_aoc-igp.sh
-bash generate_delimitations_html.sh
+bash bin/get_delimination_aoc.sh
+bash bin/get_delimination_global_aoc-igp.sh
+bash bin/generate_delimitations_html.sh

@@ -40,8 +40,8 @@ fi
 cd ..
 
 rgrep -H id_denom geo-aire-geographique/features/ | sed 's/:.*id_denom"://' | sed 's/,.*//' | while read json iddenom; do
-        if ! grep '^'$iddenom'$' iddenom_from_delim-communes.list > /dev/null; then
-		grep -a "$( jq .properties.denom $file | sed 's/"//g' )" geo-aire-geographique/comagri-communes-aires-ao.csv  | awk -F ';' '{print $1}' | while read insee ; do
+        if ! grep '^'$iddenom'$' iddenom_from_delim-communes.list > /dev/null && jq .properties.categorie $json | grep Vin > /dev/null ; then
+		grep -a "$( jq .properties.denom $json | sed 's/"//g' )" geo-aire-geographique/comagri-communes-aires-ao.csv  | awk -F ';' '{print $1}' | while read insee ; do
 			dep=$(echo $insee | sed 's/...$//')
 			iddenum_print=$(printf '%05d' $iddenom)
 			mkdir -p delimitation_aoc/$dep/$insee
