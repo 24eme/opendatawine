@@ -4,10 +4,12 @@
 "Bourgogne mousseux":"00391.geojson",
 "Bourgogne Passe-tout-grains":"00394.geojson",
 "Crémant de Bourgogne":"00561.geojson",
-"Pouilly-Loché premier cru Les Mûres":"01057.geojson",
+"Pouilly-Loché":"01057.geojson",
 "Pouilly-Loché complété par une dénomination de climat":"01058.geojson",
 "Mâcon":"01713.geojson",
 "Mâcon Loché":"02070.geojson",
 "Coteaux Bourguignons ou Bourgogne grand ordinaire ou Bourgogne ordinaire":"02338.geojson",
-"Mâcon Villages":"02893.geojson"
+"Mâcon Villages":"02893.geojson",
+"Pouilly-Loché premier cru":"02931.geojson",
+"Pouilly-Loché premier cru les Mûres":"02932.geojson"
 }
