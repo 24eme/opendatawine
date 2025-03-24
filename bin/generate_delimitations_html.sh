@@ -54,6 +54,6 @@ tail -n +2 denominations.csv | awk -F ';' '{print $8";"$9}' | sed 's/"//g' | sor
 done
 
 echo "<html><head><script type='text/javascript' src='web/js/bootstrap.bundle.5.3.0-alpha3.min.js'></script><link rel='stylesheet' type='text/css' media='screen' href='web/css/bootstrap.5.3.0-alpha3.min.css'/><title>Les communes viticoles</title></head><body><h1>Communes ayant des dénominations INAO</h1><ul>" > communes.html
-tail -n +2 denominations.csv | awk -F ';' '{print $10";"$11}' | sed 's/"//g' | sort -u | awk -F ';' '{ dep=substr($1,0, 2); print "<li><a href=\"carte.html?insee="$1"\">"$2" ("dep")</a></li>" }' >> communes.html
+tail -n +2 denominations.csv | awk -F ';' '{if ($11) print $10";"$11}' | sed 's/"//g' | sort -u | awk -F ';' '{ dep=substr($1,0, 2); print "<li><a href=\"carte.html?insee="$1"\">"$2" ("dep")</a></li>" }' >> communes.html
 echo "</ul></div></body></html>" >> communes.html
 
