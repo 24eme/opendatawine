@@ -26,7 +26,7 @@ cat $(find delimitation_aoc/ -name delimitations.json) | grep '^"' | sort -u | s
     denomination=$(echo $line| sed 's/.*;//')
     find delimitation_aoc -name $denomid".geojson"  | while read file ; do
     insee=$(echo $file | awk -F '/' '{print $3}')
-    cat $file | jq -c .features[0].properties | sed 's/\\"//g' | sed 's/;/ /g' | jq  -c '[.dt,.type_prod,.categorie,.type_denom,.type_ig,.id_app,.app,.id_denom,.denom,.insee,.nomcom,.insee2011,.nomcom2011,.id_aire,.crinao,.grp_name1,.grp_name2]' | sed 's/,null,/,"",/g' | sed 's/]$//' | awk -F '"' 'BEGIN{OFS = "\"" ;} { gsub(",", " -@- ", $4); gsub(",", " -@- ", $6); gsub(",", " -@- ", $8); gsub(",", " -@- ", $10); gsub(",", " -@- ", $22); gsub(",", " -@- ", $24); gsub(",", " -@- ", $26); gsub(",", "|", $14); gsub(",", "|", $16); gsub(",", "|", $18); gsub(",", "|", $20); if(!$16){$16="'$insee'"}; print $0}' | sed 's/,null/,/g' | sed 's/^\[//' | sed 's/"*$//' | sed 's/,/;/g' | sed 's/ -@- /,/g' >> denominations.csv
+    cat $file | jq -c .features[0].properties | sed 's/\\"//g' | sed 's/;/ /g' | jq  -c '[.dt,.type_prod,.categorie,.type_denom,.type_ig,.id_app,.app,.id_denom,.denom,.insee,.nomcom,.insee2011,.nomcom2011,.id_aire,.crinao,.grp_name1,.grp_name2]' | sed 's/,null,/,"",/g' | sed 's/]$//' | awk -F '"' 'BEGIN{OFS = "\"" ;} { gsub(",", " -@- ", $4); gsub(",", " -@- ", $6); gsub(",", " -@- ", $8); gsub(",", " -@- ", $10); gsub(",", " -@- ", $22); gsub(",", " -@- ", $24); gsub(",", " -@- ", $26); gsub(",", "|", $12); gsub(",", "|", $14); gsub(",", "|", $16); gsub(",", "|", $18); gsub(",", "|", $20); if(!$16){$16="'$insee'"}; print $0}' | sed 's/,null/,/g' | sed 's/^\[//' | sed 's/"*$//' | sed 's/,/;/g' | sed 's/ -@- /,/g' >> denominations.csv
     done
 done
 
