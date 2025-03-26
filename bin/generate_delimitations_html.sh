@@ -33,6 +33,7 @@ done
 head -n 1 denominations.csv > denominations.sorted.csv
 tail -n +2 denominations.csv | sort -u >> denominations.sorted.csv
 mv denominations.sorted.csv denominations.csv
+sed -i 's/|/,/g' denominations.csv
 
 echo "<html><head><script type='text/javascript' src='web/js/bootstrap.bundle.5.3.0-alpha3.min.js'></script><link rel='stylesheet' type='text/css' media='screen' href='web/css/bootstrap.5.3.0-alpha3.min.css'/><title>Les délimitations INAO</title></head><body><div class='container'><h1>Dénominations INAO</h1><ul>" > denominations.html
 tail -n +2 denominations.csv | sed 's/"//g' | awk -F ';' '{print $8";"$9}' | sort -u | awk -F ';' '{printf("<li><a href=\"denominations/%05d.html\">%s</a></li>\n", $1, $2);}' >> denominations.html
