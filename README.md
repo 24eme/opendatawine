@@ -11,3 +11,9 @@ git clone --no-checkout git@github.com:24eme/opendatawine.git
 git sparse-checkout set --no-cone '/*' '!/delimitation_aoc'
 git checkout master
 ```
+
+Pour mettre à jour la branche `githubpage` depuis la branche `master` :
+
+```
+bash bin/publish_to_githubpages.sh
+```
