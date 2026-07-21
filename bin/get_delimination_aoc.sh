@@ -12,14 +12,23 @@ cd geo
 if ! test -f parcellaire-aoc-shp.zip ; then
     touch -d 1970-01-01 parcellaire-aoc-shp.zip
 fi
-sha1=$(sha1sum parcellaire-aoc-shp.zip)
+sha1=$(sha1sum parcellaire-aoc-shp.zip | sed 's/ .*//')
 #################################
 # Données de https://www.data.gouv.fr/fr/datasets/delimitation-parcellaire-des-aoc-viticoles-de-linao/
 #################################
-if ! test "$sha1" = "$( curl -s https://www.data.gouv.fr/fr/datasets/delimitation-parcellaire-des-aoc-viticoles-de-linao/ | grep -A 30 parcellaire-aoc-shp.zip | grep -A 6 sha1 | tail -n 1 | awk '{print $1"  parcellaire-aoc-shp.zip"}' )" ; then
-curl -s -L $( curl -s https://www.data.gouv.fr/fr/datasets/delimitation-parcellaire-des-aoc-viticoles-de-linao/ | grep -A 30 parcellaire-aoc-shp.zip  | grep -B 5 Télécharger | grep href | awk -F '"' '{print $2}' ) -o parcellaire-aoc-shp.zip -z parcellaire-aoc-shp.zip
+DATAGOUV_DATASET="https://www.data.gouv.fr/datasets/delimitation-parcellaire-des-aoc-viticoles-de-linao"
+
+curl -s "$DATAGOUV_DATASET" > /tmp/inao.html
+grep script /tmp/inao.html | sed 's/.*<script type="application.json"[^>]*>//'  | sed 's|</script></body></html>||' | tail -n 1 > /tmp/inao.json
+echo -n "[" > /tmp/inao_shape.json ; jq . < /tmp/inao.json | grep -B 1 -A 6 parcellaire-aoc-shp.zip >> /tmp/inao_shape.json ; echo '""]' >> /tmp/inao_shape.json
+DATAGOUV_DATAURL=$(jq .[4] < /tmp/inao_shape.json | sed 's/"//g')
+DATAGOUV_DATASHA=$(jq .[6] < /tmp/inao_shape.json | sed 's/"//g')
+if ! test "$sha1" = "$DATAGOUV_DATASHA" ; then
+curl -s -L $DATAGOUV_DATAURL -o parcellaire-aoc-shp.zip
 fi
-actualsha1=$(sha1sum parcellaire-aoc-shp.zip)
+rm /tmp/inao.html /tmp/inao.json /tmp/inao_shape.json
+
+actualsha1=$(sha1sum parcellaire-aoc-shp.zip | sed 's/ .*//')
 #echo "SHA1 of downloaded file : "$actualsha1
 if ! test "$sha1" = "$actualsha1" || ! test -d "features" ; then
     rm -rf features
