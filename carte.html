@@ -100,7 +100,9 @@ var map;
 				const geojson_content = await fetch(base+json[nom]);
 				const htmlname = '<span style="display:inline-block;width:25px;opacity:0.75;background-color:'+colors[i]+'"> &nbsp; </span> '+nom;
 				const geojson = await geojson_content.json();
+				if(geojson.features[0].properties.nomcom) {
 				mycommune = geojson.features[0].properties.nomcom;
+				}
 				downloads["Délimitation de "+nom+" - "+mycommune] = geojson_content.url;
 				layers[htmlname] = L.geoJSON(geojson,{style:{fillColor:colors[i],weight:0,opacity:0.75,dashArray:'5',color:'black',fillOpacity:0.4}});
 				if (denomid) {
