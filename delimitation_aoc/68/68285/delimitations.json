@@ -1,5 +1,13 @@
 {
 "Alsace":"00001.geojson",
 "Crémant d’Alsace":"00003.geojson",
-"Alsace Lieu-dit élargi":"09001.geojson"
+"Alsace Lieu-dit élargi":"09001.geojson",
+"Alsace Lieu-dit élargi Grasberg":"09049.geojson",
+"Alsace Lieu-dit élargi Kappelreben de Rorschwihr":"09076.geojson",
+"Alsace Lieu-dit élargi Lachreben de Rorschwihr":"09082.geojson",
+"Alsace Lieu-dit élargi Moenchreben de Rorschwihr":"09096.geojson",
+"Alsace Lieu-dit élargi Oberer Weingarten de Rorschwihr":"09102.geojson",
+"Alsace Lieu-dit élargi Pflaenzer de Rorschwihr":"09109.geojson",
+"Alsace Lieu-dit élargi Rotleibel de Rorschwihr":"09119.geojson",
+"Alsace Lieu-dit élargi Weingarten de Rorschwihr":"09158.geojson"
 }
